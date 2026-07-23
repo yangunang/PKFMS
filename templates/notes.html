@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Journal</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: oklch(0.97 0.01 85); --ink: oklch(0.28 0.02 60); --muted: oklch(0.5 0.02 60);
+    --accent: oklch(0.55 0.12 150); --line: oklch(0.94 0.01 85);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Nunito', sans-serif; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 48px 24px; display: flex; flex-direction: column; gap: 20px; }
+  .lang-select { appearance: none; border: 1.5px solid oklch(0.88 0.01 85); border-radius: 999px; padding: 8px 16px;
+    font: 700 13.5px 'Nunito', sans-serif; cursor: pointer; background: #fff; color: oklch(0.4 0.02 60); }
+  .lang-select:focus { outline: none; border-color: var(--accent); }
+  .tabs-row { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .tabs { display: flex; gap: 6px; background: oklch(0.94 0.015 85); border-radius: 999px; padding: 5px; align-self: flex-start; }
+  .tabs a { border-radius: 999px; padding: 8px 20px; font-size: 14px; font-weight: 700; text-decoration: none; color: var(--muted); }
+  .tabs a.active { background: #fff; color: var(--ink); box-shadow: 0 1px 4px oklch(0.28 0.02 60 / 0.12); }
+  header { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  h1 { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.02em; }
+  header p { margin: 6px 0 0; font-size: 15px; color: var(--muted); }
+  .toolbar { display: flex; gap: 10px; align-items: center; }
+  .add-btn { background: var(--accent); color: #fff; border: none; border-radius: 999px; padding: 12px 22px;
+    font: 700 15px 'Nunito', sans-serif; cursor: pointer; box-shadow: 0 2px 8px oklch(0.55 0.12 150 / 0.35); white-space: nowrap; }
+  .add-btn:hover { background: oklch(0.48 0.12 150); }
+  .icon-btn { width: 44px; height: 44px; border-radius: 999px; background: oklch(0.95 0.01 85); border: none;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 18px; text-decoration: none; cursor: pointer; }
+  .icon-btn:hover { background: oklch(0.9 0.015 85); }
+  .card { background: #fff; border-radius: 20px; box-shadow: 0 4px 24px oklch(0.28 0.02 60 / 0.08); padding: 20px 24px;
+    display: flex; flex-direction: column; gap: 10px; }
+  .post-head { display: flex; gap: 10px; align-items: center; }
+  .post-head .spacer { flex: 1; }
+  .date { font-size: 13px; color: var(--muted); }
+  select.badge { appearance: none; border: 1.5px solid transparent; border-radius: 999px; padding: 5px 13px;
+    font: 700 13px 'Nunito', sans-serif; cursor: pointer; }
+  select.badge:hover:enabled { border-color: oklch(0.8 0.02 85); }
+  select.badge:focus { outline: none; border-color: var(--accent); }
+  select.badge:disabled { opacity: 1; cursor: default; }
+  input.title { border: 1.5px solid transparent; border-radius: 10px; padding: 6px 10px; margin: 0 -10px;
+    font: 800 19px 'Nunito', sans-serif; background: transparent; width: calc(100% + 20px); color: var(--ink); }
+  textarea.body { border: 1.5px solid transparent; border-radius: 10px; padding: 6px 10px; margin: 0 -10px;
+    font: 400 15px 'Nunito', sans-serif; background: transparent; resize: none; line-height: 1.55;
+    color: oklch(0.35 0.02 60); width: calc(100% + 20px); }
+  input.title:focus, textarea.body:focus { outline: none; border-color: var(--accent); background: #fff; }
+  #posts .body-md { font-size: 15px; line-height: 1.6; color: oklch(0.38 0.02 60); }
+  #posts .body-md h3, #posts .body-md h4, #posts .body-md h5 { margin: 12px 0 4px; font-weight: 800; color: var(--ink); }
+  #posts .body-md h3 { font-size: 20px; } #posts .body-md h4 { font-size: 17px; } #posts .body-md h5 { font-size: 15px; }
+  #posts .body-md p { margin: 6px 0; }
+  #posts .body-md ul { margin: 4px 0; padding-left: 22px; } #posts .body-md li { margin: 3px 0; }
+  #posts .body-md code { background: oklch(0.95 0.01 85); border-radius: 6px; padding: 2px 6px; font: 0.9em 'JetBrains Mono', monospace; }
+  #posts .body-md pre { background: oklch(0.96 0.01 85); border-radius: 12px; padding: 12px 14px; overflow: auto;
+    font: 12.5px 'JetBrains Mono', monospace; line-height: 1.55; }
+  #posts .body-md pre code { background: none; padding: 0; }
+  #posts .body-md a { color: var(--accent); }
+  #posts .body-md .empty-md { color: var(--muted); font-style: italic; }
+  .card.locked input.title, .card.locked textarea.body { cursor: default; }
+  .post-head button { border: none; border-radius: 999px; width: 32px; height: 32px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 13px; background: oklch(0.95 0.01 85); }
+  .post-head button:hover { filter: brightness(0.96); }
+  .post-head button.edit.editing { background: var(--accent); color: #fff; }
+  .post-head button.del { background: transparent; color: var(--muted); font-size: 16px; }
+  .post-head button.del:hover { background: oklch(0.93 0.05 25); color: oklch(0.5 0.15 25); }
+  .card.locked .del { opacity: 0.35; pointer-events: none; }
+  .composer { border: 1.5px solid oklch(0.85 0.04 150); gap: 12px; display: none; }
+  .composer.open { display: flex; }
+  .composer .row1 { display: flex; gap: 10px; align-items: center; }
+  .composer input[name=title] { border: 1.5px solid oklch(0.88 0.01 85); border-radius: 12px; padding: 10px 14px;
+    font: 700 16px 'Nunito', sans-serif; flex: 1; }
+  .composer select { appearance: none; border: 1.5px solid oklch(0.88 0.01 85); border-radius: 999px;
+    padding: 8px 16px; font: 700 14px 'Nunito', sans-serif; cursor: pointer; background: #fff; }
+  .composer textarea { border: 1.5px solid oklch(0.88 0.01 85); border-radius: 12px; padding: 12px 14px;
+    font: 400 15px 'Nunito', sans-serif; resize: vertical; line-height: 1.5; }
+  .composer input:focus, .composer select:focus, .composer textarea:focus { outline: none; border-color: var(--accent); }
+  .composer .btns { display: flex; gap: 8px; justify-content: flex-end; }
+  .composer .btns .cancel { background: transparent; color: var(--muted); border: none; border-radius: 999px;
+    padding: 9px 20px; font: 700 14px 'Nunito', sans-serif; cursor: pointer; }
+  .composer .btns .cancel:hover { background: oklch(0.95 0.01 85); }
+  .composer .btns .save { background: var(--accent); color: #fff; border: none; border-radius: 999px;
+    padding: 9px 22px; font: 700 14px 'Nunito', sans-serif; cursor: pointer; }
+  .composer .btns .save:hover { background: oklch(0.48 0.12 150); }
+  .empty { padding: 40px 20px; text-align: center; color: var(--muted); font-size: 15px; }
+  .count { margin: 0; text-align: center; font-size: 13px; color: var(--muted); }
+  .manage { display: none; flex-direction: column; gap: 14px; }
+  .manage.open { display: flex; }
+  .manage h2 { margin: 0; font-size: 15px; font-weight: 800; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { display: flex; align-items: center; gap: 8px; border-radius: 999px; padding: 6px 8px 6px 14px;
+    font-size: 14px; font-weight: 700; }
+  .chip small { font-size: 11.5px; font-weight: 600; opacity: 0.75; white-space: nowrap; }
+  .chip button { border: none; background: rgb(255 255 255 / 0.5); color: inherit; border-radius: 999px;
+    width: 20px; height: 20px; cursor: pointer; font-size: 13px; display: flex; align-items: center;
+    justify-content: center; padding: 0; }
+  .chip button:hover { background: #fff; }
+  .cat-add { display: flex; gap: 8px; }
+  .cat-add input { border: 1.5px solid oklch(0.88 0.01 85); border-radius: 999px; padding: 9px 16px;
+    font: 400 14px 'Nunito', sans-serif; flex: 1; max-width: 280px; }
+  .cat-add input:focus { outline: none; border-color: var(--accent); }
+  .cat-add button { background: var(--accent); color: #fff; border: none; border-radius: 999px;
+    padding: 9px 20px; font: 700 14px 'Nunito', sans-serif; cursor: pointer; }
+  .cat-add button:hover { background: oklch(0.48 0.12 150); }
+  .cat-error { margin: 0; font-size: 13px; color: oklch(0.5 0.15 25); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="tabs-row">
+  <nav class="tabs">
+    <a href="/">{{ T.tabCreds }}</a>
+    <a href="/files">{{ T.tabFiles }}</a>
+    <a href="/notes" class="active">{{ T.tabNotes }}</a>
+  </nav>
+  <select class="lang-select" onchange="location='/lang/'+this.value+'?next='+encodeURIComponent(location.pathname)">
+      {% for code, name in LANGS.items() %}<option value="{{ code }}" {% if code == LANG %}selected{% endif %}>🌐 {{ name }}</option>{% endfor %}
+    </select>
+  </div>
+  <header>
+    <div>
+      <h1>{{ T.notesTitle }}</h1>
+      <p>{{ T.notesSub }}</p>
+    </div>
+    <div class="toolbar">
+      <button class="add-btn" id="new-entry">{{ T.newEntry }}</button>
+      <button class="icon-btn" id="manage-toggle" title="Customize categories">&#9881;</button>
+      <a class="icon-btn" href="/logout" title="Lock">&#128274;</a>
+    </div>
+  </header>
+  <div class="card manage" id="manage">
+    <h2>{{ T.custNoteCat }}</h2>
+    <div class="chips" id="chips"></div>
+    <div class="cat-add">
+      <input id="new-cat" placeholder="{{ T.newCatPh }}" maxlength="32">
+      <button id="add-cat">{{ T.addBtn }}</button>
+    </div>
+    <p class="cat-error" id="cat-error" hidden></p>
+  </div>
+  <div class="card composer" id="composer">
+    <div class="row1">
+      <input name="title" placeholder="{{ T.entryTitlePh }}">
+      <select id="composer-env">
+        {% for env in environments %}<option value="{{ env }}">{{ env }}</option>{% endfor %}
+      </select>
+      <select id="composer-cat">
+        {% for cat in categories %}<option value="{{ cat }}">{{ cat }}</option>{% endfor %}
+      </select>
+    </div>
+    <textarea rows="5" placeholder="{{ T.bodyPh }}"></textarea>
+    <div class="btns">
+      <button class="cancel">{{ T.cancel }}</button>
+      <button class="save">{{ T.save }}</button>
+    </div>
+  </div>
+  <div id="posts" style="display: contents;">
+    {% for p in posts %}
+    <div class="card locked" data-id="{{ p.id }}">
+      <div class="post-head">
+        <select class="badge env" data-field="env" disabled>
+          {% for env in environments %}
+          <option value="{{ env }}" {% if env == p.env %}selected{% endif %}>{{ env }}</option>
+          {% endfor %}
+        </select>
+        <select class="badge" data-field="category" disabled>
+          {% for cat in categories %}
+          <option value="{{ cat }}" {% if cat == p.category %}selected{% endif %}>{{ cat }}</option>
+          {% endfor %}
+        </select>
+        <span class="date">{{ p.created }}</span>
+        <div class="spacer"></div>
+        <button class="edit" title="Unlock for editing">&#9998;</button>
+        <button class="del" title="Delete entry">&times;</button>
+      </div>
+      <input class="title" data-field="title" value="{{ p.title }}" placeholder="{{ T.entryTitlePh }}" readonly>
+      <textarea class="body" data-field="body" placeholder="{{ T.bodyPh }}" readonly style="display: none;">{{ p.body }}</textarea>
+      <div class="body-md"></div>
+    </div>
+    {% endfor %}
+  </div>
+  {% if not posts %}<div class="card empty">{{ T.emptyNotes }}</div>{% endif %}
+  <p class="count">{% if posts | length == 1 %}{{ T.entry }}{% else %}{{ T.entries.replace('{n}', posts | length | string) }}{% endif %} &middot; {{ T.encAtRest }}</p>
+</div>
+<script>
+let CATS = {{ categories | tojson }};
+const ENVS = {{ environments | tojson }};
+const T = {{ T | tojson }};
+const escMd = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const mdInline = t => escMd(t)
+  .replace(/`([^`]+)`/g, '<code>$1</code>')
+  .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+  .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+  .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+function mdToHtml(src) {
+  const lines = (src || '').split('\n');
+  let html = '', list = false, code = false, buf = [];
+  const closeList = () => { if (list) { html += '</ul>'; list = false; } };
+  for (const ln of lines) {
+    if (ln.trim().startsWith('```')) {
+      if (code) { html += '<pre><code>' + escMd(buf.join('\n')) + '</code></pre>'; buf = []; }
+      code = !code; continue;
+    }
+    if (code) { buf.push(ln); continue; }
+    const h = ln.match(/^(#{1,3})\s+(.*)/);
+    if (h) { closeList(); html += `<h${h[1].length + 2}>${mdInline(h[2])}</h${h[1].length + 2}>`; continue; }
+    if (/^\s*[-*]\s+/.test(ln)) { if (!list) { html += '<ul>'; list = true; } html += '<li>' + mdInline(ln.replace(/^\s*[-*]\s+/, '')) + '</li>'; continue; }
+    closeList();
+    if (ln.trim() === '') continue;
+    html += '<p>' + mdInline(ln) + '</p>';
+  }
+  closeList();
+  if (code && buf.length) html += '<pre><code>' + escMd(buf.join('\n')) + '</code></pre>';
+  return html;
+}
+function renderBody(card) {
+  const ta = card.querySelector('.body');
+  const md = card.querySelector('.body-md');
+  if (!ta || !md) return;
+  md.innerHTML = ta.value.trim() ? mdToHtml(ta.value) : '<span class="empty-md">' + escMd(T.bodyPh) + '</span>';
+}
+const HUES = [150, 250, 55, 320, 200, 20, 100, 280];
+const color = name => {
+  const i = Math.max(0, CATS.indexOf(name));
+  const h = HUES[(i + 2) % HUES.length];
+  return { bg: `oklch(0.93 0.06 ${h})`, fg: `oklch(0.4 0.1 ${h})` };
+};
+const envColor = name => {
+  const i = Math.max(0, ENVS.indexOf(name));
+  const h = HUES[i % HUES.length];
+  return { bg: `oklch(0.93 0.06 ${h})`, fg: `oklch(0.4 0.1 ${h})` };
+};
+const paint = sel => {
+  const c = sel.classList.contains('env') ? envColor(sel.value) : color(sel.value);
+  sel.style.background = c.bg; sel.style.color = c.fg;
+};
+const autosize = t => { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; };
+
+const postsEl = document.getElementById('posts');
+postsEl.querySelectorAll('select.badge').forEach(paint);
+postsEl.querySelectorAll('textarea.body').forEach(autosize);
+postsEl.querySelectorAll('.card').forEach(renderBody);
+
+const patch = (id, data) => fetch('/api/notes/' + id, {
+  method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)
+});
+
+postsEl.addEventListener('change', e => {
+  const card = e.target.closest('.card');
+  const field = e.target.dataset.field;
+  if (!card || !field) return;
+  patch(card.dataset.id, { [field]: e.target.value });
+  paint(e.target);
+  if (field === 'category') renderChips();
+});
+postsEl.addEventListener('input', e => {
+  if (e.target.matches('textarea.body')) autosize(e.target);
+});
+
+postsEl.addEventListener('click', async e => {
+  const card = e.target.closest('.card');
+  if (!card) return;
+  if (e.target.closest('.edit')) {
+    const locked = !card.classList.contains('locked');
+    card.classList.toggle('locked', locked);
+    card.querySelector('[data-field=category]').disabled = locked;
+    card.querySelector('[data-field=env]').disabled = locked;
+    card.querySelector('.title').readOnly = locked;
+    const ta = card.querySelector('.body');
+    ta.readOnly = locked;
+    ta.style.display = locked ? 'none' : '';
+    card.querySelector('.body-md').style.display = locked ? '' : 'none';
+    if (locked) { renderBody(card); } else { autosize(ta); }
+    const btn = card.querySelector('.edit');
+    btn.classList.toggle('editing', !locked);
+    btn.innerHTML = locked ? '&#9998;' : '&#10003;';
+    btn.title = locked ? 'Unlock for editing' : 'Done editing';
+  } else if (e.target.closest('.del')) {
+    await fetch('/api/notes/' + card.dataset.id, { method: 'DELETE' });
+    card.remove();
+    renderChips();
+  }
+});
+
+// composer
+const composer = document.getElementById('composer');
+document.getElementById('new-entry').addEventListener('click', () => {
+  composer.classList.add('open');
+  composer.querySelector('[name=title]').focus();
+});
+composer.querySelector('.cancel').addEventListener('click', () => composer.classList.remove('open'));
+composer.querySelector('.save').addEventListener('click', async () => {
+  const title = composer.querySelector('[name=title]').value.trim();
+  const body = composer.querySelector('textarea').value.trim();
+  if (!title && !body) { composer.classList.remove('open'); return; }
+  const res = await fetch('/api/notes', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ title, body, category: document.getElementById('composer-cat').value,
+      env: document.getElementById('composer-env').value })
+  });
+  if (res.ok) location.reload();
+});
+
+// category customization
+const manageEl = document.getElementById('manage');
+const chipsEl = document.getElementById('chips');
+const errEl = document.getElementById('cat-error');
+const showErr = msg => { errEl.textContent = msg || ''; errEl.hidden = !msg; };
+
+const renderChips = () => {
+  chipsEl.innerHTML = '';
+  CATS.forEach(name => {
+    const n = [...postsEl.querySelectorAll('select[data-field=category]')].filter(s => s.value === name).length;
+    const c = color(name);
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.style.background = c.bg; chip.style.color = c.fg;
+    chip.innerHTML = `${name} <small>${n ? T.inUseN.split('{n}').join(n) : T.unused}</small> <button title="Remove">&times;</button>`;
+    chip.querySelector('button').addEventListener('click', async () => {
+      const res = await fetch('/api/note-categories/' + encodeURIComponent(name), { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) { showErr(data.error); return; }
+      CATS = data.categories;
+      showErr(); renderChips(); rebuildSelects();
+    });
+    chipsEl.appendChild(chip);
+  });
+};
+const rebuildSelects = () => {
+  document.querySelectorAll('select[data-field=category], #composer-cat').forEach(sel => {
+    const cur = sel.value;
+    sel.innerHTML = CATS.map(c => `<option value="${c}"${c === cur ? ' selected' : ''}>${c}</option>`).join('');
+    if (!CATS.includes(cur)) sel.value = CATS[0];
+    if (sel.classList.contains('badge')) paint(sel);
+  });
+};
+renderChips();
+
+document.getElementById('manage-toggle').addEventListener('click', () => {
+  manageEl.classList.toggle('open'); showErr();
+});
+const addCat = async () => {
+  const inp = document.getElementById('new-cat');
+  const name = inp.value.trim().toLowerCase();
+  if (!name) return;
+  const res = await fetch('/api/note-categories', {
+    method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name })
+  });
+  const data = await res.json();
+  if (!res.ok) { showErr(data.error); return; }
+  CATS = data.categories;
+  inp.value = '';
+  showErr(); renderChips(); rebuildSelects();
+};
+document.getElementById('add-cat').addEventListener('click', addCat);
+document.getElementById('new-cat').addEventListener('keydown', e => { if (e.key === 'Enter') addCat(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Files</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: oklch(0.97 0.01 85); --ink: oklch(0.28 0.02 60); --muted: oklch(0.5 0.02 60);
+    --accent: oklch(0.55 0.12 150); --line: oklch(0.94 0.01 85);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Nunito', sans-serif; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 48px 24px; display: flex; flex-direction: column; gap: 20px; }
+  .lang-select { appearance: none; border: 1.5px solid oklch(0.88 0.01 85); border-radius: 999px; padding: 8px 16px;
+    font: 700 13.5px 'Nunito', sans-serif; cursor: pointer; background: #fff; color: oklch(0.4 0.02 60); }
+  .lang-select:focus { outline: none; border-color: var(--accent); }
+  .tabs-row { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .tabs { display: flex; gap: 6px; background: oklch(0.94 0.015 85); border-radius: 999px; padding: 5px; align-self: flex-start; }
+  .tabs a { border-radius: 999px; padding: 8px 20px; font-size: 14px; font-weight: 700; text-decoration: none; color: var(--muted); }
+  .tabs a.active { background: #fff; color: var(--ink); box-shadow: 0 1px 4px oklch(0.28 0.02 60 / 0.12); }
+  header { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  h1 { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.02em; }
+  header p { margin: 6px 0 0; font-size: 15px; color: var(--muted); }
+  .toolbar { display: flex; gap: 10px; align-items: center; }
+  .add-btn { background: var(--accent); color: #fff; border: none; border-radius: 999px; padding: 12px 22px;
+    font: 700 15px 'Nunito', sans-serif; cursor: pointer; box-shadow: 0 2px 8px oklch(0.55 0.12 150 / 0.35); white-space: nowrap; }
+  .add-btn:hover { background: oklch(0.48 0.12 150); }
+  .icon-btn { width: 44px; height: 44px; border-radius: 999px; background: oklch(0.95 0.01 85); border: none;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 18px; text-decoration: none; cursor: pointer; }
+  .icon-btn:hover { background: oklch(0.9 0.015 85); }
+  .card { background: #fff; border-radius: 20px; box-shadow: 0 4px 24px oklch(0.28 0.02 60 / 0.08); overflow: hidden; }
+  .grid-head, .grid-row { display: grid; grid-template-columns: 1fr 150px 130px 90px 168px; gap: 12px; align-items: center; padding: 10px 20px; }
+  .grid-head { padding: 14px 20px; background: oklch(0.94 0.015 85); font-size: 12.5px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .grid-row { border-top: 1px solid var(--line); }
+  .fname { font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  select.badge { appearance: none; border: 1.5px solid transparent; border-radius: 999px; padding: 6px 14px;
+    font: 700 13.5px 'Nunito', sans-serif; cursor: pointer; }
+  select.badge:hover { border-color: oklch(0.8 0.02 85); }
+  select.badge:focus { outline: none; border-color: var(--accent); }
+  .size { font: 400 13.5px 'JetBrains Mono', monospace; color: var(--muted); }
+  .actions { display: flex; gap: 4px; justify-content: flex-end; }
+  .actions a, .actions button { border: none; border-radius: 999px; width: 34px; height: 34px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 15px; background: oklch(0.95 0.01 85);
+    text-decoration: none; color: var(--ink); }
+  .actions a:hover, .actions button:hover { background: oklch(0.9 0.015 85); }
+  .actions button.del { background: transparent; color: var(--muted); font-size: 17px; }
+  .actions button.del:hover { background: oklch(0.93 0.05 25); color: oklch(0.5 0.15 25); }
+  .actions button.edit.editing { background: var(--accent); color: #fff; }
+  .actions a.desc { background: oklch(0.95 0.01 85); color: oklch(0.6 0.02 60); border-radius: 999px; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-size: 14px; text-decoration: none; }
+  .actions a.desc.has { color: oklch(0.45 0.12 150); }
+  .actions a.desc:hover { background: oklch(0.9 0.015 85); }
+  .grid-row.locked .del { opacity: 0.35; pointer-events: none; }
+  .grid-row.locked select.badge { cursor: default; }
+  select.badge:disabled { opacity: 1; }
+  .empty { padding: 40px 20px; text-align: center; color: var(--muted); font-size: 15px; }
+  .count { margin: 0; text-align: center; font-size: 13px; color: var(--muted); }
+  .manage { display: none; flex-direction: column; gap: 14px; padding: 20px 24px; }
+  .manage.open { display: flex; }
+  .manage h2 { margin: 0; font-size: 15px; font-weight: 800; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { display: flex; align-items: center; gap: 8px; border-radius: 999px; padding: 6px 8px 6px 14px;
+    font-size: 14px; font-weight: 700; }
+  .chip small { font-size: 11.5px; font-weight: 600; opacity: 0.75; white-space: nowrap; }
+  .chip button { border: none; background: rgb(255 255 255 / 0.5); color: inherit; border-radius: 999px;
+    width: 20px; height: 20px; cursor: pointer; font-size: 13px; display: flex; align-items: center;
+    justify-content: center; padding: 0; }
+  .chip button:hover { background: #fff; }
+  .cat-add { display: flex; gap: 8px; }
+  .cat-add input { border: 1.5px solid oklch(0.88 0.01 85); border-radius: 999px; padding: 9px 16px;
+    font: 400 14px 'Nunito', sans-serif; flex: 1; max-width: 280px; }
+  .cat-add input:focus { outline: none; border-color: var(--accent); }
+  .cat-add button { background: var(--accent); color: #fff; border: none; border-radius: 999px;
+    padding: 9px 20px; font: 700 14px 'Nunito', sans-serif; cursor: pointer; }
+  .cat-add button:hover { background: oklch(0.48 0.12 150); }
+  .cat-error { margin: 0; font-size: 13px; color: oklch(0.5 0.15 25); }
+  .uploading { opacity: 0.5; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="tabs-row">
+  <nav class="tabs">
+    <a href="/">{{ T.tabCreds }}</a>
+    <a href="/files" class="active">{{ T.tabFiles }}</a>
+    <a href="/notes">{{ T.tabNotes }}</a>
+  </nav>
+  <select class="lang-select" onchange="location='/lang/'+this.value+'?next='+encodeURIComponent(location.pathname)">
+      {% for code, name in LANGS.items() %}<option value="{{ code }}" {% if code == LANG %}selected{% endif %}>🌐 {{ name }}</option>{% endfor %}
+    </select>
+  </div>
+  <header>
+    <div>
+      <h1>{{ T.filesTitle }}</h1>
+      <p>{{ T.filesSub }}</p>
+    </div>
+    <div class="toolbar">
+      <input type="file" id="file-input" hidden>
+      <button class="add-btn" id="upload">{{ T.uploadBtn }}</button>
+      <button class="icon-btn" id="manage-toggle" title="Customize categories">&#9881;</button>
+      <a class="icon-btn" href="/logout" title="Lock">&#128274;</a>
+    </div>
+  </header>
+  <div class="card manage" id="manage">
+    <h2>{{ T.custFileCat }}</h2>
+    <div class="chips" id="chips"></div>
+    <div class="cat-add">
+      <input id="new-cat" placeholder="{{ T.newCatPh }}" maxlength="24">
+      <button id="add-cat">{{ T.addBtn }}</button>
+    </div>
+    <p class="cat-error" id="cat-error" hidden></p>
+  </div>
+  <div class="card">
+    <div class="grid-head">
+      <div>{{ T.colFile }}</div><div>{{ T.colEnv }}</div><div>{{ T.colCat }}</div><div>{{ T.colSize }}</div><div></div>
+    </div>
+    <div id="rows">
+      {% for f in files %}
+      <div class="grid-row locked" data-id="{{ f.id }}">
+        <div class="fname">{{ f.filename }}</div>
+        <div>
+          <select class="badge" data-field="env" disabled>
+            {% for env in environments %}
+            <option value="{{ env }}" {% if env == f.env %}selected{% endif %}>{{ env }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <select class="badge" data-field="category" disabled>
+            {% for cat in categories %}
+            <option value="{{ cat }}" {% if cat == f.category %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="size" data-bytes="{{ f.size }}"></div>
+        <div class="actions">
+          <a class="desc{% if f.has_desc %} has{% endif %}" href="/files/{{ f.id }}/description" title="{{ T.descTitle }}">&#128196;</a>
+          <button class="edit" title="{{ T.unlockEdit }}">&#9998;</button>
+          <a href="/files/{{ f.id }}/download" title="Download">&#11015;</a>
+          <button class="del" title="Delete file">&times;</button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="empty" id="empty" {% if files %}hidden{% endif %}>{{ T.emptyFiles }}</div>
+  </div>
+  <p class="count"></p>
+</div>
+<script>
+const ENVS = {{ environments | tojson }};
+let CATS = {{ categories | tojson }};
+const T = {{ T | tojson }};
+const HUES = [150, 250, 55, 320, 200, 20, 100, 280];
+const color = (list, name, offset) => {
+  const i = Math.max(0, list.indexOf(name));
+  const h = HUES[(i + offset) % HUES.length];
+  return { bg: `oklch(0.93 0.06 ${h})`, fg: `oklch(0.4 0.1 ${h})` };
+};
+const paint = sel => {
+  const isCat = sel.dataset.field === 'category';
+  const c = color(isCat ? CATS : ENVS, sel.value, isCat ? 4 : 0);
+  sel.style.background = c.bg; sel.style.color = c.fg;
+};
+const fmtSize = b => b < 1024 ? b + ' B' : b < 1048576 ? (b/1024).toFixed(1) + ' KB'
+  : b < 1073741824 ? (b/1048576).toFixed(1) + ' MB' : (b/1073741824).toFixed(2) + ' GB';
+
+const rowsEl = document.getElementById('rows');
+const refresh = () => {
+  rowsEl.querySelectorAll('select.badge').forEach(paint);
+  rowsEl.querySelectorAll('.size[data-bytes]').forEach(el => el.textContent = fmtSize(+el.dataset.bytes));
+  const n = rowsEl.children.length;
+  document.querySelector('.count').textContent = (n === 1 ? T.file1 : T.filesN.split('{n}').join(n)) + ' \u00b7 ' + T.storedLocal;
+  document.getElementById('empty').hidden = n > 0;
+};
+refresh();
+
+rowsEl.addEventListener('change', e => {
+  const row = e.target.closest('.grid-row');
+  const field = e.target.dataset.field;
+  if (!row || !field) return;
+  fetch('/api/files/' + row.dataset.id, {
+    method: 'PATCH', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ [field]: e.target.value })
+  });
+  paint(e.target);
+  if (field === 'category') renderChips();
+});
+
+const setRowLocked = (row, locked) => {
+  row.classList.toggle('locked', locked);
+  row.querySelectorAll('select.badge').forEach(s => s.disabled = locked);
+  const btn = row.querySelector('.edit');
+  btn.classList.toggle('editing', !locked);
+  btn.innerHTML = locked ? '&#9998;' : '&#10003;';
+  btn.title = locked ? T.unlockEdit : T.doneEdit;
+};
+
+rowsEl.addEventListener('click', async e => {
+  const row = e.target.closest('.grid-row');
+  if (!row) return;
+  if (e.target.closest('.edit')) {
+    setRowLocked(row, !row.classList.contains('locked') ? true : false);
+  } else if (e.target.closest('.del')) {
+    await fetch('/api/files/' + row.dataset.id, { method: 'DELETE' });
+    row.remove();
+    refresh(); renderChips();
+  }
+});
+
+const input = document.getElementById('file-input');
+document.getElementById('upload').addEventListener('click', () => input.click());
+input.addEventListener('change', async () => {
+  const file = input.files[0];
+  if (!file) return;
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('env', ENVS[0]);
+  const btn = document.getElementById('upload');
+  btn.disabled = true; btn.textContent = T.uploading;
+  const res = await fetch('/api/files', { method: 'POST', body: fd });
+  btn.disabled = false; btn.textContent = T.uploadBtn;
+  input.value = '';
+  if (res.ok) location.reload();
+});
+
+// ---- category customization ----
+const manageEl = document.getElementById('manage');
+const chipsEl = document.getElementById('chips');
+const errEl = document.getElementById('cat-error');
+const showErr = msg => { errEl.textContent = msg || ''; errEl.hidden = !msg; };
+
+const renderChips = () => {
+  chipsEl.innerHTML = '';
+  CATS.forEach(name => {
+    const n = [...rowsEl.querySelectorAll('select[data-field=category]')].filter(s => s.value === name).length;
+    const c = color(CATS, name, 4);
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.style.background = c.bg; chip.style.color = c.fg;
+    chip.innerHTML = `${name} <small>${n ? T.inUseN.split('{n}').join(n) : T.unused}</small> <button title="Remove">&times;</button>`;
+    chip.querySelector('button').addEventListener('click', async () => {
+      const res = await fetch('/api/categories/' + encodeURIComponent(name), { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) { showErr(data.error); return; }
+      CATS = data.categories;
+      showErr(); renderChips(); rebuildSelects();
+    });
+    chipsEl.appendChild(chip);
+  });
+};
+const rebuildSelects = () => {
+  rowsEl.querySelectorAll('select[data-field=category]').forEach(sel => {
+    const cur = sel.value;
+    sel.innerHTML = CATS.map(c => `<option value="${c}"${c === cur ? ' selected' : ''}>${c}</option>`).join('');
+    if (!CATS.includes(cur)) sel.value = CATS[0];
+    paint(sel);
+  });
+};
+renderChips();
+
+document.getElementById('manage-toggle').addEventListener('click', () => {
+  manageEl.classList.toggle('open'); showErr();
+});
+const addCat = async () => {
+  const inp = document.getElementById('new-cat');
+  const name = inp.value.trim().toLowerCase();
+  if (!name) return;
+  const res = await fetch('/api/categories', {
+    method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name })
+  });
+  const data = await res.json();
+  if (!res.ok) { showErr(data.error); return; }
+  CATS = data.categories;
+  inp.value = '';
+  showErr(); renderChips(); rebuildSelects();
+};
+document.getElementById('add-cat').addEventListener('click', addCat);
+document.getElementById('new-cat').addEventListener('keydown', e => { if (e.key === 'Enter') addCat(); });
+</script>
+</body>
+</html>

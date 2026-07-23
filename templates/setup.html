@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Setup — My Credentials</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: oklch(0.97 0.01 85); --ink: oklch(0.28 0.02 60); --muted: oklch(0.5 0.02 60);
+    --accent: oklch(0.55 0.12 150); }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Nunito', sans-serif;
+    display: flex; justify-content: center; padding: 12vh 24px 24px; }
+  .card { width: 100%; max-width: 380px; background: #fff; border-radius: 24px; padding: 36px 32px;
+    box-shadow: 0 4px 24px oklch(0.28 0.02 60 / 0.08); display: flex; flex-direction: column; gap: 18px; }
+  .icon { width: 56px; height: 56px; border-radius: 999px; background: oklch(0.93 0.06 150);
+    display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto; }
+  h1 { margin: 0; font-size: 22px; font-weight: 800; text-align: center; }
+  p.sub { margin: 0; font-size: 14px; color: var(--muted); text-align: center; }
+  input { border: 1.5px solid oklch(0.88 0.01 85); border-radius: 12px; padding: 12px 14px;
+    font: 400 15px 'Nunito', sans-serif; width: 100%; }
+  input:focus { outline: none; border-color: var(--accent); }
+  input.code { font: 600 22px 'JetBrains Mono', monospace; letter-spacing: 0.3em; text-align: center; }
+  button { background: var(--accent); color: #fff; border: none; border-radius: 999px; padding: 12px 22px;
+    font: 700 15px 'Nunito', sans-serif; cursor: pointer; }
+  button:hover { background: oklch(0.48 0.12 150); }
+  .error { margin: 0; font-size: 13.5px; color: oklch(0.5 0.15 25); text-align: center; }
+  .hint { margin: 0; font-size: 12px; color: oklch(0.62 0.02 60); text-align: center; }
+  code.secret { display: block; background: var(--bg); border-radius: 10px; padding: 12px;
+    font: 600 14px 'JetBrains Mono', monospace; text-align: center; word-break: break-all; }
+</style>
+</head>
+<body>
+{% if done %}
+<div class="card">
+  <div class="icon">&#9989;</div>
+  <h1>Two-factor setup</h1>
+  <p class="sub">Scan this QR code with your authenticator app (Google Authenticator, Authy, 1Password&hellip;)</p>
+  <img src="{{ totp_qr }}" alt="TOTP QR code" style="width: 200px; height: 200px; margin: 0 auto; border-radius: 12px; background: #fff; border: 1.5px solid oklch(0.9 0.01 85); padding: 8px;">
+  <p class="hint">Or enter this secret manually:</p>
+  <code class="secret">{{ totp_secret }}</code>
+  <a href="/login" style="text-decoration: none;"><button style="width: 100%;">Go to login</button></a>
+  <p class="hint">Save the secret somewhere safe — it is shown only once.</p>
+</div>
+{% else %}
+<form class="card" method="post">
+  <div class="icon">&#128273;</div>
+  <h1>First-run setup</h1>
+  <p class="sub">Choose a master password. It encrypts all stored data &mdash; if you lose it, the data cannot be recovered.</p>
+  <input type="password" name="password" placeholder="Master password (min 8 chars)" minlength="8" autofocus required>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <button type="submit">Set password &amp; enable 2FA</button>
+</form>
+{% endif %}
+</body>
+</html>

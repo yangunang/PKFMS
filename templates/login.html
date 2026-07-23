@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unlock — My Credentials</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: oklch(0.97 0.01 85); --ink: oklch(0.28 0.02 60); --muted: oklch(0.5 0.02 60);
+    --accent: oklch(0.55 0.12 150); }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Nunito', sans-serif;
+    display: flex; justify-content: center; padding: 12vh 24px 24px; }
+  .card { width: 100%; max-width: 380px; background: #fff; border-radius: 24px; padding: 36px 32px;
+    box-shadow: 0 4px 24px oklch(0.28 0.02 60 / 0.08); display: flex; flex-direction: column; gap: 18px; }
+  .icon { width: 56px; height: 56px; border-radius: 999px; background: oklch(0.93 0.06 150);
+    display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto; }
+  h1 { margin: 0; font-size: 22px; font-weight: 800; text-align: center; }
+  p.sub { margin: 0; font-size: 14px; color: var(--muted); text-align: center; }
+  input { border: 1.5px solid oklch(0.88 0.01 85); border-radius: 12px; padding: 12px 14px;
+    font: 400 15px 'Nunito', sans-serif; width: 100%; }
+  input:focus { outline: none; border-color: var(--accent); }
+  input.code { font: 600 22px 'JetBrains Mono', monospace; letter-spacing: 0.3em; text-align: center; }
+  button { background: var(--accent); color: #fff; border: none; border-radius: 999px; padding: 12px 22px;
+    font: 700 15px 'Nunito', sans-serif; cursor: pointer; }
+  button:hover { background: oklch(0.48 0.12 150); }
+  .error { margin: 0; font-size: 13.5px; color: oklch(0.5 0.15 25); text-align: center; }
+  .hint { margin: 0; font-size: 12px; color: oklch(0.62 0.02 60); text-align: center; }
+  code.secret { display: block; background: var(--bg); border-radius: 10px; padding: 12px;
+    font: 600 14px 'JetBrains Mono', monospace; text-align: center; word-break: break-all; }
+</style>
+</head>
+<body>
+<form class="card" method="post">
+  <div class="icon">&#128274;</div>
+  {% if step == 'password' %}
+  <h1>{{ T.loginTitle1 }}</h1>
+  <p class="sub">{{ T.loginSub1 }}</p>
+  <input type="hidden" name="step" value="password">
+  <input type="password" name="password" placeholder="{{ T.mpPh }}" autofocus required>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <button type="submit">{{ T.continueBtn }}</button>
+  <p class="hint">{{ T.hint1 }}</p>
+  {% else %}
+  <h1>{{ T.loginTitle2 }}</h1>
+  <p class="sub">{{ T.loginSub2 }}</p>
+  <input type="hidden" name="step" value="otp">
+  <input class="code" name="code" placeholder="123 456" maxlength="7" inputmode="numeric" autofocus required>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <button type="submit">{{ T.unlockBtn }}</button>
+  <p class="hint">{{ T.hint2 }}</p>
+  {% endif %}
+  <select class="lang-select" style="align-self: center; appearance: none; border: 1.5px solid oklch(0.9 0.01 85); border-radius: 999px; padding: 7px 14px; font: 700 12.5px 'Nunito', sans-serif; cursor: pointer; background: #fff; color: oklch(0.5 0.02 60);" onchange="location='/lang/'+this.value+'?next='+encodeURIComponent(location.pathname)">
+    {% for code, name in LANGS.items() %}<option value="{{ code }}" {% if code == LANG %}selected{% endif %}>🌐 {{ name }}</option>{% endfor %}
+  </select>
+</form>
+</body>
+</html>

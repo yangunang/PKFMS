@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="{{ LANG }}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ account }} — {{ T.tabFiles }}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: oklch(0.97 0.01 85); --ink: oklch(0.28 0.02 60); --muted: oklch(0.6 0.02 60); --accent: oklch(0.55 0.12 150); }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: var(--bg); font-family: 'Nunito', sans-serif; color: var(--ink);
+    display: flex; justify-content: center; padding: 40px 20px; }
+  a { color: var(--accent); font-weight: 700; }
+  a:hover { color: oklch(0.45 0.12 150); }
+  .card { width: 100%; max-width: 760px; background: #fff; border-radius: 20px; padding: 28px 32px;
+    box-shadow: 0 2px 12px oklch(0.28 0.02 60 / 0.06); display: flex; flex-direction: column; gap: 16px; align-self: flex-start; }
+  .head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .back { border: none; background: oklch(0.95 0.01 85); color: oklch(0.35 0.02 60); border-radius: 999px; padding: 8px 18px;
+    font: 700 14px 'Nunito', sans-serif; cursor: pointer; text-decoration: none; }
+  .back:hover { background: oklch(0.92 0.015 85); color: oklch(0.35 0.02 60); }
+  h1 { margin: 0; font-size: 22px; font-weight: 800; flex: 1; }
+  .env-badge { border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 700; }
+  .sub { font-size: 12.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .file-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid oklch(0.94 0.01 85); font-size: 14.5px; }
+  .file-row .nm { flex: 1; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); text-decoration: none; }
+  a.nm:hover { color: var(--accent); }
+  .file-row .badge { border-radius: 999px; padding: 4px 12px; font-size: 12.5px; font-weight: 700; }
+  .file-row .meta { font-size: 13px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .file-row .dl { background: oklch(0.95 0.01 85); border-radius: 999px; width: 32px; height: 32px; font-size: 14px;
+    display: flex; align-items: center; justify-content: center; text-decoration: none; }
+  .file-row .dl:hover { background: oklch(0.9 0.015 85); }
+  .empty { padding: 20px 0; border-top: 1px solid oklch(0.94 0.01 85); font-size: 14.5px; color: var(--muted); font-style: italic; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="head">
+    <a class="back" href="/">{{ T.back }}</a>
+    <h1>&#128193; {{ account }}</h1>
+    <span class="env-badge" id="env-badge">{{ env }}</span>
+  </div>
+  <div class="sub" id="sub"></div>
+  {% for f in files %}
+  <div class="file-row">
+    <a class="nm" href="/files/{{ f.id }}/download">{{ f.filename }}</a>
+    <span class="badge cat-badge" data-cat="{{ f.category }}">{{ f.category }}</span>
+    <span class="meta" data-bytes="{{ f.size }}"></span>
+    <a class="dl" href="/files/{{ f.id }}/download" title="Download">&#11015;</a>
+  </div>
+  {% endfor %}
+  {% if not files %}<div class="empty" id="empty"></div>{% endif %}
+</div>
+<script>
+const T = {{ T | tojson }};
+const ENVS = {{ environments | tojson }};
+const CATS = {{ categories | tojson }};
+const ENV = {{ env | tojson }};
+const HUES = [150, 250, 55, 320, 200, 20, 100, 280];
+const tint = (list, name, offset) => {
+  const i = Math.max(0, list.indexOf(name));
+  const h = HUES[(i + offset) % HUES.length];
+  return { bg: `oklch(0.93 0.06 ${h})`, fg: `oklch(0.4 0.1 ${h})` };
+};
+(() => { const b = document.getElementById('env-badge'); const c = tint(ENVS, ENV, 0); b.style.background = c.bg; b.style.color = c.fg; })();
+document.querySelectorAll('.cat-badge').forEach(b => { const c = tint(CATS, b.dataset.cat, 4); b.style.background = c.bg; b.style.color = c.fg; });
+const fmtSize = b => b < 1024 ? b + ' B' : b < 1048576 ? (b/1024).toFixed(1) + ' KB' : b < 1073741824 ? (b/1048576).toFixed(1) + ' MB' : (b/1073741824).toFixed(2) + ' GB';
+document.querySelectorAll('.meta[data-bytes]').forEach(el => el.textContent = fmtSize(+el.dataset.bytes));
+document.getElementById('sub').textContent = T.filesIn.split('{name}').join(ENV).replace(/^\uD83D\uDCC1\s*/, '');
+const empty = document.getElementById('empty');
+if (empty) empty.textContent = T.noFiles.split('{name}').join(ENV);
+</script>
+</body>
+</html>

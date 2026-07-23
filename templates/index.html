@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Credentials</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: oklch(0.97 0.01 85); --ink: oklch(0.28 0.02 60); --muted: oklch(0.5 0.02 60);
+    --accent: oklch(0.55 0.12 150); --line: oklch(0.94 0.01 85);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Nunito', sans-serif; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 48px 24px; display: flex; flex-direction: column; gap: 20px; }
+  .lang-select { appearance: none; border: 1.5px solid oklch(0.88 0.01 85); border-radius: 999px; padding: 8px 16px;
+    font: 700 13.5px 'Nunito', sans-serif; cursor: pointer; background: #fff; color: oklch(0.4 0.02 60); }
+  .lang-select:focus { outline: none; border-color: var(--accent); }
+  .tabs-row { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .tabs { display: flex; gap: 6px; background: oklch(0.94 0.015 85); border-radius: 999px; padding: 5px; align-self: flex-start; }
+  .tabs a { border-radius: 999px; padding: 8px 20px; font-size: 14px; font-weight: 700; text-decoration: none; color: var(--muted); }
+  .tabs a.active { background: #fff; color: var(--ink); box-shadow: 0 1px 4px oklch(0.28 0.02 60 / 0.12); }
+  header { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  h1 { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.02em; }
+  header p { margin: 6px 0 0; font-size: 15px; color: var(--muted); }
+  .toolbar { display: flex; gap: 10px; align-items: center; }
+  .add-btn { background: var(--accent); color: #fff; border: none; border-radius: 999px; padding: 12px 22px;
+    font: 700 15px 'Nunito', sans-serif; cursor: pointer; box-shadow: 0 2px 8px oklch(0.55 0.12 150 / 0.35); }
+  .add-btn:hover { background: oklch(0.48 0.12 150); }
+  .export-btn { background: #fff; color: oklch(0.45 0.12 150); border: 1.5px solid oklch(0.85 0.04 150);
+    border-radius: 999px; padding: 12px 22px; font: 700 15px 'Nunito', sans-serif; cursor: pointer;
+    text-decoration: none; display: inline-flex; align-items: center; }
+  .export-btn:hover { background: oklch(0.96 0.02 150); }
+  .icon-btn { width: 44px; height: 44px; border-radius: 999px; background: oklch(0.95 0.01 85); border: none;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 18px; text-decoration: none; cursor: pointer; }
+  .icon-btn:hover { background: oklch(0.9 0.015 85); }
+  .card { background: #fff; border-radius: 20px; box-shadow: 0 4px 24px oklch(0.28 0.02 60 / 0.08); overflow: hidden; }
+  .grid-head, .grid-row { display: grid; grid-template-columns: 1fr 1fr 1fr 150px 204px; gap: 12px; align-items: center; padding: 10px 20px; }
+  .grid-head { padding: 14px 20px; background: oklch(0.94 0.015 85); font-size: 12.5px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .grid-head button { all: unset; cursor: pointer; display: flex; gap: 6px; align-items: center; }
+  .grid-row { border-top: 1px solid var(--line); }
+  select.env { appearance: none; border: 1.5px solid transparent; border-radius: 999px; padding: 6px 14px;
+    font: 700 14px 'Nunito', sans-serif; cursor: pointer; }
+  select.env:hover { border-color: oklch(0.8 0.02 85); }
+  select.env:focus { outline: none; border-color: var(--accent); }
+  input.cell { border: 1.5px solid transparent; border-radius: 10px; padding: 8px 10px; font-size: 15px;
+    background: transparent; width: 100%; font-family: 'Nunito', sans-serif; }
+  input.cell.pw { font: 600 14px 'JetBrains Mono', monospace; }
+  input.cell.info { font-size: 14px; color: oklch(0.45 0.02 60); }
+  input.cell:hover { background: var(--bg); }
+  input.cell:focus { outline: none; border-color: var(--accent); background: #fff; }
+  .actions { display: flex; gap: 4px; justify-content: flex-end; }
+  .actions button { border: none; border-radius: 999px; width: 34px; height: 34px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 15px; background: oklch(0.95 0.01 85); }
+  .actions button:hover { background: oklch(0.9 0.015 85); }
+  .actions button.del { background: transparent; color: var(--muted); font-size: 17px; }
+  .actions button.del:hover { background: oklch(0.93 0.05 25); color: oklch(0.5 0.15 25); }
+  .actions button.edit.editing { background: var(--accent); color: #fff; }
+  .actions a.desc { background: oklch(0.95 0.01 85); color: oklch(0.6 0.02 60); border-radius: 999px; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center; font-size: 14px; text-decoration: none; }
+  .actions a.desc.has { color: oklch(0.45 0.12 150); }
+  .actions a.desc:hover { background: oklch(0.9 0.015 85); }
+  .grid-row.locked input.cell:hover { background: transparent; }
+  .grid-row.locked select.env, .grid-row.locked input.cell { cursor: default; }
+  .grid-row.locked .del { opacity: 0.35; pointer-events: none; }
+  select.env:disabled { opacity: 1; }
+  .empty { padding: 40px 20px; text-align: center; color: var(--muted); font-size: 15px; }
+  .count { margin: 0; text-align: center; font-size: 13px; color: var(--muted); }
+  .manage { display: none; flex-direction: column; gap: 14px; padding: 20px 24px; }
+  .manage.open { display: flex; }
+  .manage h2 { margin: 0; font-size: 15px; font-weight: 800; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { display: flex; align-items: center; gap: 8px; border-radius: 999px; padding: 6px 8px 6px 14px;
+    font-size: 14px; font-weight: 700; }
+  .chip small { font-size: 11.5px; font-weight: 600; opacity: 0.75; }
+  .chip button { border: none; background: rgb(255 255 255 / 0.5); color: inherit; border-radius: 999px;
+    width: 20px; height: 20px; cursor: pointer; font-size: 13px; display: flex; align-items: center;
+    justify-content: center; padding: 0; }
+  .chip button:hover { background: #fff; }
+  .env-add { display: flex; gap: 8px; }
+  .env-add input { border: 1.5px solid oklch(0.88 0.01 85); border-radius: 999px; padding: 9px 16px;
+    font: 400 14px 'Nunito', sans-serif; flex: 1; max-width: 280px; }
+  .env-add input:focus { outline: none; border-color: var(--accent); }
+  .env-add button { background: var(--accent); color: #fff; border: none; border-radius: 999px;
+    padding: 9px 20px; font: 700 14px 'Nunito', sans-serif; cursor: pointer; }
+  .env-add button:hover { background: oklch(0.48 0.12 150); }
+  .env-error { margin: 0; font-size: 13px; color: oklch(0.5 0.15 25); }
+  .env-filter { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .env-label { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-right: 2px; }
+  .filter-chip { border: 1.5px solid oklch(0.88 0.01 85); background: transparent; color: var(--muted);
+    border-radius: 999px; padding: 6px 16px; font: 700 13.5px 'Nunito', sans-serif; cursor: pointer; }
+  .filter-chip:hover { border-color: oklch(0.7 0.04 150); }
+  .filter-chip.active { border-color: transparent; }
+  #related-files { display: none; overflow: hidden; }
+  #related-files.open { display: block; }
+  #related-files .rf-head { padding: 14px 20px; background: oklch(0.94 0.015 85); font-size: 12.5px;
+    font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .rf-row { display: grid; grid-template-columns: 1fr 130px 90px 44px; align-items: center; gap: 12px;
+    padding: 10px 20px; border-top: 1px solid var(--line); }
+  .rf-row .fname { font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rf-row .badge { border-radius: 999px; padding: 5px 13px; font-size: 13px; font-weight: 700; }
+  .rf-row .size { font: 400 13.5px 'JetBrains Mono', monospace; color: var(--muted); }
+  .rf-row a { background: oklch(0.95 0.01 85); border-radius: 999px; width: 34px; height: 34px; font-size: 15px;
+    display: flex; align-items: center; justify-content: center; text-decoration: none; color: var(--ink); }
+  .rf-row a:hover { background: oklch(0.9 0.015 85); }
+  .rf-empty { padding: 24px 20px; text-align: center; color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="tabs-row">
+  <nav class="tabs">
+    <a href="/" class="active">{{ T.tabCreds }}</a>
+    <a href="/files">{{ T.tabFiles }}</a>
+    <a href="/notes">{{ T.tabNotes }}</a>
+  </nav>
+  <select class="lang-select" onchange="location='/lang/'+this.value+'?next='+encodeURIComponent(location.pathname)">
+      {% for code, name in LANGS.items() %}<option value="{{ code }}" {% if code == LANG %}selected{% endif %}>🌐 {{ name }}</option>{% endfor %}
+    </select>
+  </div>
+  <header>
+    <div>
+      <h1>{{ T.credsTitle }}</h1>
+      <p>{{ T.credsSub }}</p>
+    </div>
+    <div class="toolbar">
+      <a class="export-btn" href="/export">{{ T.exportBtn }}</a>
+      <button class="add-btn" id="add">{{ T.addEntry }}</button>
+      <button class="icon-btn" id="manage-toggle" title="Customize environments">&#9881;</button>
+      <a class="icon-btn" href="/logout" title="Lock">&#128274;</a>
+    </div>
+  </header>
+  <div class="env-filter">
+    <span class="env-label">{{ T.envLabel }}</span>
+    <button class="filter-chip active" data-env="">{{ T.allLabel }}</button>
+    {% for env in environments %}
+    <button class="filter-chip" data-env="{{ env }}">{{ env }}</button>
+    {% endfor %}
+  </div>
+  <div class="card manage" id="manage">
+    <h2>{{ T.custEnv }}</h2>
+    <div class="chips" id="chips"></div>
+    <div class="env-add">
+      <input id="new-env" placeholder="{{ T.newEnvPh }}" maxlength="24">
+      <button id="add-env">{{ T.addBtn }}</button>
+    </div>
+    <p class="env-error" id="env-error" hidden></p>
+  </div>
+  <div class="card">
+    <div class="grid-head">
+      <div>{{ T.colInfo }}</div>
+      <button data-sort="account">{{ T.colAccount }} <span></span></button>
+      <div>{{ T.colPassword }}</div>
+      <button data-sort="env">{{ T.colEnv }} <span></span></button>
+      <div></div>
+    </div>
+    <div id="rows">
+      {% for row in rows %}
+      <div class="grid-row locked" data-id="{{ row.id }}">
+        <input class="cell info" data-field="info" value="{{ row.info }}" placeholder="{{ T.infoPh }}" readonly>
+        <input class="cell" data-field="account" value="{{ row.account }}" placeholder="{{ T.accountPh }}" readonly>
+        <input class="cell pw" type="password" data-field="password" value="{{ row.password }}" placeholder="{{ T.passwordPh }}" readonly>
+        <div>
+          <select class="env" data-field="env" disabled>
+            {% for env in environments %}
+            <option value="{{ env }}" {% if env == row.env %}selected{% endif %}>{{ env }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="actions">
+          <a class="desc" href="/rows/{{ row.id }}/files" title="{{ T.tabFiles }}">&#128193;</a>
+          <a class="desc{% if row.has_desc %} has{% endif %}" href="/rows/{{ row.id }}/description" title="{{ T.descTitle }}">&#128196;</a>
+          <button class="edit" title="{{ T.unlockEdit }}">&#9998;</button>
+          <button class="eye" title="Show/hide password">&#128065;</button>
+          <button class="del" title="Delete row">&times;</button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% if not rows %}<div class="empty">{{ T.emptyCreds }}</div>{% endif %}
+  </div>
+  <div class="card" id="related-files">
+    <div class="rf-head"></div>
+    <div id="rf-rows"></div>
+  </div>
+  <p class="count"></p>
+</div>
+<script>
+let ENVS = {{ environments | tojson }};
+const FILES = {{ files | tojson }};
+let CATS = {{ categories | tojson }};
+let envFilter = '';
+const T = {{ T | tojson }};
+const HUES = [150, 250, 55, 320, 200, 20, 100, 280];
+const envColor = name => {
+  const i = Math.max(0, ENVS.indexOf(name));
+  const h = HUES[i % HUES.length];
+  return { bg: `oklch(0.93 0.06 ${h})`, fg: `oklch(0.4 0.1 ${h})` };
+};
+const paintEnv = sel => {
+  const c = envColor(sel.value);
+  sel.style.background = c.bg; sel.style.color = c.fg;
+};
+
+const rowsEl = document.getElementById('rows');
+const patch = (id, data) => fetch('/api/rows/' + id, {
+  method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)
+});
+const updateCount = () => {
+  const n = [...rowsEl.children].filter(r => r.style.display !== 'none').length;
+  document.querySelector('.count').textContent = (n === 1 ? T.entry : T.entries.split('{n}').join(n)) + ' \u00b7 ' + T.encAtRest;
+};
+const paintAll = () => rowsEl.querySelectorAll('select.env').forEach(paintEnv);
+
+const fmtSize = b => b < 1024 ? b + ' B' : b < 1048576 ? (b/1024).toFixed(1) + ' KB'
+  : b < 1073741824 ? (b/1048576).toFixed(1) + ' MB' : (b/1073741824).toFixed(2) + ' GB';
+const catColor = name => {
+  const i = Math.max(0, CATS.indexOf(name));
+  const h = HUES[(i + 4) % HUES.length];
+  return { bg: `oklch(0.93 0.06 ${h})`, fg: `oklch(0.4 0.1 ${h})` };
+};
+
+const applyFilter = () => {
+  rowsEl.querySelectorAll('.grid-row').forEach(row => {
+    const env = row.querySelector('[data-field=env]').value;
+    row.style.display = (!envFilter || env === envFilter) ? '' : 'none';
+  });
+  document.querySelectorAll('.filter-chip').forEach(ch => {
+    const active = ch.dataset.env === envFilter;
+    ch.classList.toggle('active', active);
+    if (active && ch.dataset.env) {
+      const c = envColor(ch.dataset.env);
+      ch.style.background = c.bg; ch.style.color = c.fg;
+    } else if (active) {
+      ch.style.background = 'oklch(0.28 0.02 60)'; ch.style.color = '#fff';
+    } else {
+      ch.style.background = ''; ch.style.color = '';
+    }
+  });
+  const rf = document.getElementById('related-files');
+  rf.classList.toggle('open', !!envFilter);
+  if (envFilter) {
+    rf.querySelector('.rf-head').textContent = T.filesIn.split('{name}').join(envFilter);
+    const list = FILES.filter(f => f.env === envFilter);
+    const rows = document.getElementById('rf-rows');
+    rows.innerHTML = list.length ? list.map(f => {
+      const c = catColor(f.category);
+      return `<div class="rf-row"><div class="fname">${f.filename}</div>
+        <div><span class="badge" style="background:${c.bg};color:${c.fg}">${f.category}</span></div>
+        <div class="size">${fmtSize(f.size)}</div>
+        <a href="/files/${f.id}/download" title="Download">&#11015;</a></div>`;
+    }).join('') : '<div class="rf-empty">' + T.noFiles.split('{name}').join(envFilter) + '</div>';
+  }
+  updateCount();
+};
+document.querySelectorAll('.filter-chip').forEach(ch =>
+  ch.addEventListener('click', () => { envFilter = ch.dataset.env; applyFilter(); }));
+
+paintAll(); updateCount();
+
+const rebuildSelects = () => {
+  rowsEl.querySelectorAll('select.env').forEach(sel => {
+    const cur = sel.value;
+    sel.innerHTML = ENVS.map(e => `<option value="${e}"${e === cur ? ' selected' : ''}>${e}</option>`).join('');
+    if (!ENVS.includes(cur)) sel.value = ENVS[0];
+    paintEnv(sel);
+  });
+};
+
+rowsEl.addEventListener('change', e => {
+  const row = e.target.closest('.grid-row');
+  const field = e.target.dataset.field;
+  if (!row || !field) return;
+  patch(row.dataset.id, { [field]: e.target.value });
+  if (field === 'env') { paintEnv(e.target); renderChips(); applyFilter(); }
+});
+
+const setRowLocked = (row, locked) => {
+  row.classList.toggle('locked', locked);
+  row.querySelector('[data-field=env]').disabled = locked;
+  row.querySelectorAll('input.cell').forEach(i => i.readOnly = locked);
+  const btn = row.querySelector('.edit');
+  btn.classList.toggle('editing', !locked);
+  btn.innerHTML = locked ? '&#9998;' : '&#10003;';
+  btn.title = locked ? 'Unlock for editing' : 'Done editing';
+};
+
+rowsEl.addEventListener('click', async e => {
+  const row = e.target.closest('.grid-row');
+  if (!row) return;
+  if (e.target.closest('.edit')) {
+    setRowLocked(row, !row.classList.contains('locked') ? true : false);
+  } else if (e.target.closest('.eye')) {
+    const pw = row.querySelector('[data-field=password]');
+    pw.type = pw.type === 'password' ? 'text' : 'password';
+    e.target.closest('.eye').innerHTML = pw.type === 'text' ? '&#128584;' : '&#128065;';
+  } else if (e.target.closest('.del')) {
+    await fetch('/api/rows/' + row.dataset.id, { method: 'DELETE' });
+    row.remove();
+    updateCount(); renderChips();
+  }
+});
+
+document.getElementById('add').addEventListener('click', async () => {
+  const r = await (await fetch('/api/rows', { method: 'POST' })).json();
+  const first = rowsEl.querySelector('.grid-row');
+  if (!first) { location.reload(); return; }
+  const node = first.cloneNode(true);
+  node.dataset.id = r.id;
+  node.querySelector('[data-field=account]').value = '';
+  node.querySelector('[data-field=password]').value = '';
+  const sel = node.querySelector('[data-field=env]');
+  sel.value = r.env; paintEnv(sel);
+  setRowLocked(node, false);
+  rowsEl.appendChild(node);
+  updateCount(); renderChips();
+  node.querySelector('[data-field=account]').focus();
+});
+
+document.querySelectorAll('[data-sort]').forEach(btn => {
+  let dir = 1;
+  btn.addEventListener('click', () => {
+    const field = btn.dataset.sort;
+    const rows = [...rowsEl.children];
+    rows.sort((a, b) => {
+      const av = a.querySelector('[data-field=' + field + ']').value;
+      const bv = b.querySelector('[data-field=' + field + ']').value;
+      return av.localeCompare(bv) * dir;
+    });
+    rows.forEach(r => rowsEl.appendChild(r));
+    document.querySelectorAll('[data-sort] span').forEach(s => s.textContent = '');
+    btn.querySelector('span').textContent = dir === 1 ? '\u25B2' : '\u25BC';
+    dir = -dir;
+  });
+});
+
+// ---- environment customization ----
+const manageEl = document.getElementById('manage');
+const chipsEl = document.getElementById('chips');
+const errEl = document.getElementById('env-error');
+const showErr = msg => { errEl.textContent = msg || ''; errEl.hidden = !msg; };
+
+const renderChips = () => {
+  chipsEl.innerHTML = '';
+  ENVS.forEach(name => {
+    const n = [...rowsEl.querySelectorAll('select.env')].filter(s => s.value === name).length;
+    const c = envColor(name);
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.style.background = c.bg; chip.style.color = c.fg;
+    chip.innerHTML = `${name} <small>${n ? T.inUseN.split('{n}').join(n) : T.unused}</small> <button title="Remove">&times;</button>`;
+    chip.querySelector('button').addEventListener('click', async () => {
+      const res = await fetch('/api/envs/' + encodeURIComponent(name), { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) { showErr(data.error); return; }
+      ENVS = data.environments;
+      showErr(); renderChips(); rebuildSelects();
+    });
+    chipsEl.appendChild(chip);
+  });
+};
+renderChips();
+
+document.getElementById('manage-toggle').addEventListener('click', () => {
+  manageEl.classList.toggle('open');
+  showErr();
+});
+
+const addEnv = async () => {
+  const input = document.getElementById('new-env');
+  const name = input.value.trim().toLowerCase();
+  if (!name) return;
+  const res = await fetch('/api/envs', {
+    method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name })
+  });
+  const data = await res.json();
+  if (!res.ok) { showErr(data.error); return; }
+  ENVS = data.environments;
+  input.value = '';
+  showErr(); renderChips(); rebuildSelects(); paintAll();
+};
+document.getElementById('add-env').addEventListener('click', addEnv);
+document.getElementById('new-env').addEventListener('keydown', e => { if (e.key === 'Enter') addEnv(); });
+</script>
+</body>
+</html>

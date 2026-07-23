@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="{{ LANG }}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ account }} — {{ T.descTitle }}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: oklch(0.97 0.01 85); --ink: oklch(0.28 0.02 60); --muted: oklch(0.6 0.02 60); --accent: oklch(0.55 0.12 150); }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: var(--bg); font-family: 'Nunito', sans-serif; color: var(--ink);
+    display: flex; justify-content: center; padding: 40px 20px; }
+  a { color: var(--accent); font-weight: 700; }
+  a:hover { color: oklch(0.45 0.12 150); }
+  .card { width: 100%; max-width: 760px; background: #fff; border-radius: 20px; padding: 28px 32px;
+    box-shadow: 0 2px 12px oklch(0.28 0.02 60 / 0.06); display: flex; flex-direction: column; gap: 18px; align-self: flex-start; }
+  .head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .back { border: none; background: oklch(0.95 0.01 85); color: oklch(0.35 0.02 60); border-radius: 999px; padding: 8px 18px;
+    font: 700 14px 'Nunito', sans-serif; cursor: pointer; text-decoration: none; }
+  .back:hover { background: oklch(0.92 0.015 85); color: oklch(0.35 0.02 60); }
+  h1 { margin: 0; font-size: 22px; font-weight: 800; flex: 1; }
+  .env-badge { border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 700; }
+  .edit-btn { border: none; background: oklch(0.95 0.01 85); color: oklch(0.35 0.02 60); border-radius: 999px; width: 36px; height: 36px;
+    cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; }
+  .edit-btn:hover { filter: brightness(0.96); }
+  .edit-btn.editing { background: var(--accent); color: #fff; }
+  #editor { display: none; flex-direction: column; gap: 8px; }
+  #editor.open { display: flex; }
+  #editor textarea { border: 1.5px solid oklch(0.88 0.01 85); border-radius: 14px; padding: 14px 16px;
+    font: 400 14px 'JetBrains Mono', monospace; color: oklch(0.32 0.02 60); resize: vertical; line-height: 1.6; min-height: 220px; }
+  #editor textarea:focus { outline: none; border-color: var(--accent); }
+  #editor small { color: var(--muted); font-size: 12px; }
+  #rendered { font-size: 15px; line-height: 1.65; color: oklch(0.35 0.02 60); }
+  #rendered h3, #rendered h4, #rendered h5 { margin: 14px 0 4px; font-weight: 800; color: var(--ink); }
+  #rendered h3 { font-size: 22px; } #rendered h4 { font-size: 18px; } #rendered h5 { font-size: 15.5px; }
+  #rendered p { margin: 6px 0; }
+  #rendered ul { margin: 4px 0; padding-left: 22px; } #rendered li { margin: 3px 0; }
+  #rendered code { background: oklch(0.95 0.01 85); border-radius: 6px; padding: 2px 6px; font: 0.9em 'JetBrains Mono', monospace; }
+  #rendered pre { background: oklch(0.96 0.01 85); border-radius: 12px; padding: 14px 16px; overflow: auto;
+    font: 12.5px 'JetBrains Mono', monospace; line-height: 1.55; }
+  #rendered pre code { background: none; padding: 0; }
+  .empty-desc { color: var(--muted); font-style: italic; }
+  .saved { font-size: 12.5px; color: var(--accent); font-weight: 700; opacity: 0; transition: opacity 0.3s; }
+  .saved.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="head">
+    <a class="back" href="/">{{ T.back }}</a>
+    <h1>{{ account }}</h1>
+    <span class="env-badge" id="env-badge">{{ env }}</span>
+    <span class="saved" id="saved">✓</span>
+    <button class="edit-btn" id="edit" title="{{ T.unlockEdit }}">&#9998;</button>
+  </div>
+  <div id="editor">
+    <textarea id="src" placeholder="{{ T.descPh }}">{{ desc }}</textarea>
+    <small>{{ T.mdHint }}</small>
+  </div>
+  <div id="rendered"></div>
+</div>
+<script>
+const T = {{ T | tojson }};
+const ENVS = {{ environments | tojson }};
+const ROW_ID = {{ row_id }};
+const HUES = [150, 250, 55, 320, 200, 20, 100, 280];
+(() => {
+  const i = Math.max(0, ENVS.indexOf(document.getElementById('env-badge').textContent));
+  const h = HUES[i % HUES.length];
+  const b = document.getElementById('env-badge');
+  b.style.background = `oklch(0.93 0.06 ${h})`; b.style.color = `oklch(0.4 0.1 ${h})`;
+})();
+
+const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const inline = t => esc(t)
+  .replace(/`([^`]+)`/g, '<code>$1</code>')
+  .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+  .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+  .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+function mdToHtml(src) {
+  const lines = (src || '').split('\n');
+  let html = '', list = false, code = false, buf = [];
+  const closeList = () => { if (list) { html += '</ul>'; list = false; } };
+  for (const ln of lines) {
+    if (ln.trim().startsWith('```')) {
+      if (code) { html += '<pre><code>' + esc(buf.join('\n')) + '</code></pre>'; buf = []; }
+      code = !code; continue;
+    }
+    if (code) { buf.push(ln); continue; }
+    const h = ln.match(/^(#{1,3})\s+(.*)/);
+    if (h) { closeList(); html += `<h${h[1].length + 2}>${inline(h[2])}</h${h[1].length + 2}>`; continue; }
+    if (/^\s*[-*]\s+/.test(ln)) { if (!list) { html += '<ul>'; list = true; } html += '<li>' + inline(ln.replace(/^\s*[-*]\s+/, '')) + '</li>'; continue; }
+    closeList();
+    if (ln.trim() === '') continue;
+    html += '<p>' + inline(ln) + '</p>';
+  }
+  closeList();
+  if (code && buf.length) html += '<pre><code>' + esc(buf.join('\n')) + '</code></pre>';
+  return html;
+}
+
+const srcEl = document.getElementById('src');
+const rendered = document.getElementById('rendered');
+const render = () => {
+  const v = srcEl.value.trim();
+  rendered.innerHTML = v ? mdToHtml(srcEl.value) : '<p class="empty-desc">' + esc(T.emptyDesc) + '</p>';
+};
+render();
+
+const editBtn = document.getElementById('edit');
+const editor = document.getElementById('editor');
+editBtn.addEventListener('click', () => {
+  const open = editor.classList.toggle('open');
+  editBtn.classList.toggle('editing', open);
+  editBtn.innerHTML = open ? '&#10003;' : '&#9998;';
+  editBtn.title = open ? T.doneEdit : T.unlockEdit;
+  if (open) srcEl.focus();
+});
+
+let timer = null;
+srcEl.addEventListener('input', () => {
+  render();
+  clearTimeout(timer);
+  timer = setTimeout(async () => {
+    await fetch('/api/rows/' + ROW_ID, { method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ description: srcEl.value }) });
+    const s = document.getElementById('saved');
+    s.classList.add('show'); setTimeout(() => s.classList.remove('show'), 1200);
+  }, 500);
+});
+</script>
+</body>
+</html>
