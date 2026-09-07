@@ -30,6 +30,13 @@
   .file-row .dl { background: oklch(0.95 0.01 85); border-radius: 999px; width: 32px; height: 32px; font-size: 14px;
     display: flex; align-items: center; justify-content: center; text-decoration: none; }
   .file-row .dl:hover { background: oklch(0.9 0.015 85); }
+  .upload { background: var(--accent); color: #fff; border: none; border-radius: 999px; padding: 10px 20px;
+    font: 700 14.5px 'Nunito', sans-serif; cursor: pointer; }
+  .upload:hover { background: oklch(0.48 0.12 150); }
+  .upload:disabled { opacity: 0.6; cursor: default; }
+  .file-row .del { border: none; background: transparent; color: var(--muted); border-radius: 999px;
+    width: 32px; height: 32px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+  .file-row .del:hover { background: oklch(0.93 0.05 25); color: oklch(0.5 0.15 25); }
   .empty { padding: 20px 0; border-top: 1px solid oklch(0.94 0.01 85); font-size: 14.5px; color: var(--muted); font-style: italic; }
 </style>
 </head>
@@ -39,6 +46,8 @@
     <a class="back" href="/">{{ T.back }}</a>
     <h1>&#128193; {{ account }}</h1>
     <span class="env-badge" id="env-badge">{{ env }}</span>
+    <input type="file" id="file-input" style="display: none;">
+    <button class="upload" id="upload">{{ T.uploadBtn }}</button>
   </div>
   <div class="sub" id="sub"></div>
   {% for f in files %}
@@ -47,15 +56,18 @@
     <span class="badge cat-badge" data-cat="{{ f.category }}">{{ f.category }}</span>
     <span class="meta" data-bytes="{{ f.size }}"></span>
     <a class="dl" href="/files/{{ f.id }}/download" title="Download">&#11015;</a>
+    <button class="del" data-id="{{ f.id }}" title="{{ T.delRow }}">&times;</button>
   </div>
   {% endfor %}
-  {% if not files %}<div class="empty" id="empty"></div>{% endif %}
+  <div class="empty" id="empty"{% if files %} style="display: none;"{% endif %}></div>
 </div>
 <script>
 const T = {{ T | tojson }};
 const ENVS = {{ environments | tojson }};
 const CATS = {{ categories | tojson }};
 const ENV = {{ env | tojson }};
+const ROW_ID = {{ row_id }};
+const ACCOUNT = {{ account | tojson }};
 const HUES = [150, 250, 55, 320, 200, 20, 100, 280];
 const tint = (list, name, offset) => {
   const i = Math.max(0, list.indexOf(name));
@@ -66,9 +78,32 @@ const tint = (list, name, offset) => {
 document.querySelectorAll('.cat-badge').forEach(b => { const c = tint(CATS, b.dataset.cat, 4); b.style.background = c.bg; b.style.color = c.fg; });
 const fmtSize = b => b < 1024 ? b + ' B' : b < 1048576 ? (b/1024).toFixed(1) + ' KB' : b < 1073741824 ? (b/1048576).toFixed(1) + ' MB' : (b/1073741824).toFixed(2) + ' GB';
 document.querySelectorAll('.meta[data-bytes]').forEach(el => el.textContent = fmtSize(+el.dataset.bytes));
-document.getElementById('sub').textContent = T.filesIn.split('{name}').join(ENV).replace(/^\uD83D\uDCC1\s*/, '');
-const empty = document.getElementById('empty');
-if (empty) empty.textContent = T.noFiles.split('{name}').join(ENV);
+document.getElementById('sub').textContent = T.filesIn.split('{name}').join(ACCOUNT).replace(/^[^A-Za-z0-9\u00C0-\uFFFF]*\s*/, '');
+document.getElementById('empty').textContent = T.emptyFiles;
+
+const input = document.getElementById('file-input');
+const uploadBtn = document.getElementById('upload');
+uploadBtn.addEventListener('click', () => input.click());
+input.addEventListener('change', async () => {
+  const file = input.files[0];
+  if (!file) return;
+  uploadBtn.disabled = true; uploadBtn.textContent = T.uploading;
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('env', ENV);
+  fd.append('cred_id', ROW_ID);
+  const res = await fetch('/api/files', { method: 'POST', body: fd });
+  uploadBtn.disabled = false; uploadBtn.textContent = T.uploadBtn;
+  input.value = '';
+  if (res.ok) location.reload();
+});
+
+document.querySelectorAll('.file-row .del').forEach(btn =>
+  btn.addEventListener('click', async () => {
+    await fetch('/api/files/' + btn.dataset.id, { method: 'DELETE' });
+    btn.closest('.file-row').remove();
+    if (!document.querySelector('.file-row')) document.getElementById('empty').style.display = '';
+  }));
 </script>
 </body>
 </html>

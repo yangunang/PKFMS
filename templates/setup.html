@@ -31,17 +31,27 @@
 </style>
 </head>
 <body>
-{% if done %}
+{% if verified %}
 <div class="card">
   <div class="icon">&#9989;</div>
+  <h1>2FA confirmed</h1>
+  <p class="sub">Your authenticator is working. Setup is complete.</p>
+  <a href="/login" style="text-decoration: none;"><button style="width: 100%;">Go to login</button></a>
+</div>
+{% elif done %}
+<form class="card" method="post" action="/setup/verify">
+  <div class="icon">&#128241;</div>
   <h1>Two-factor setup</h1>
   <p class="sub">Scan this QR code with your authenticator app (Google Authenticator, Authy, 1Password&hellip;)</p>
   <img src="{{ totp_qr }}" alt="TOTP QR code" style="width: 200px; height: 200px; margin: 0 auto; border-radius: 12px; background: #fff; border: 1.5px solid oklch(0.9 0.01 85); padding: 8px;">
   <p class="hint">Or enter this secret manually:</p>
   <code class="secret">{{ totp_secret }}</code>
-  <a href="/login" style="text-decoration: none;"><button style="width: 100%;">Go to login</button></a>
+  <p class="sub" style="font-weight: 700;">Enter the current 6-digit code to confirm it works:</p>
+  <input class="code" name="code" inputmode="numeric" pattern="[0-9 ]*" maxlength="7" placeholder="000 000" autofocus required>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <button type="submit">Verify &amp; finish setup</button>
   <p class="hint">Save the secret somewhere safe — it is shown only once.</p>
-</div>
+</form>
 {% else %}
 <form class="card" method="post">
   <div class="icon">&#128273;</div>

@@ -150,14 +150,21 @@ def init_db():
         db.execute("ALTER TABLE credentials ADD COLUMN info BLOB")
     if "description" not in cols:
         db.execute("ALTER TABLE credentials ADD COLUMN description BLOB")
+    if "short_info" not in cols:
+        db.execute("ALTER TABLE credentials ADD COLUMN short_info BLOB")
     fcols = [r[1] for r in db.execute("PRAGMA table_info(files)").fetchall()]
     if "description" not in fcols:
         db.execute("ALTER TABLE files ADD COLUMN description BLOB")
     if "tags" not in fcols:
         db.execute("ALTER TABLE files ADD COLUMN tags TEXT")
+    if "cred_id" not in fcols:
+        db.execute("ALTER TABLE files ADD COLUMN cred_id INTEGER")
     ncols = [r[1] for r in db.execute("PRAGMA table_info(notes)").fetchall()]
     if "env" not in ncols:
         db.execute("ALTER TABLE notes ADD COLUMN env TEXT")
+    if (db.execute("SELECT value FROM settings WHERE key = 'totp_secret'").fetchone()
+            and not db.execute("SELECT value FROM settings WHERE key = 'totp_confirmed'").fetchone()):
+        db.execute("INSERT INTO settings (key, value) VALUES ('totp_confirmed', '1')")
     if db.execute("SELECT COUNT(*) FROM note_categories").fetchone()[0] == 0:
         db.executemany("INSERT INTO note_categories (name, position) VALUES (?, ?)",
                        [(n, i) for i, n in enumerate(DEFAULT_NOTE_CATEGORIES)])
@@ -264,11 +271,13 @@ def reset_2fa():
             return
         totp_secret = pyotp.random_base32()
         set_setting("totp_secret", totp_secret)
+        set_setting("totp_confirmed", "0")
         uri = pyotp.totp.TOTP(totp_secret).provisioning_uri(
             name="credentials", issuer_name="My Credentials")
         print("\nNew 2FA secret generated. Scan this QR code with your authenticator app:\n")
         segno.make(uri, error="m").terminal(compact=True, border=2)
         print(f"\nOr enter the secret manually: {totp_secret}\n")
+        print("Open the app: it will ask for a code once to confirm the new secret.")
         print("Your master password and all stored data are unchanged.")
 
 
@@ -296,9 +305,26 @@ def factory_reset():
 
 # ---------- first-run setup ----------
 
+def totp_confirmed():
+    return get_setting("totp_confirmed") == "1"
+
+
+def render_qr_step(error=None):
+    totp_secret = get_setting("totp_secret")
+    uri = pyotp.totp.TOTP(totp_secret).provisioning_uri(
+        name="credentials", issuer_name="My Credentials"
+    )
+    qr = segno.make(uri, error="m").svg_data_uri(scale=4, border=2)
+    return render_template("setup.html", totp_secret=totp_secret,
+                           totp_qr=qr, done=True, error=error)
+
+
 @app.route("/setup", methods=["GET", "POST"])
 def setup():
     if get_setting("pw_hash") is not None:
+        # password set but 2FA never verified -> resume at the QR step
+        if not totp_confirmed():
+            return render_qr_step()
         return redirect(url_for("login"))
     if request.method == "POST":
         pw = request.form.get("password", "")
@@ -306,22 +332,29 @@ def setup():
             return render_template("setup.html", error="Password must be at least 8 characters.")
         set_setting("pw_hash", generate_password_hash(pw))
         set_setting("salt", base64.b64encode(secrets.token_bytes(16)).decode())
-        totp_secret = pyotp.random_base32()
-        set_setting("totp_secret", totp_secret)
-        uri = pyotp.totp.TOTP(totp_secret).provisioning_uri(
-            name="credentials", issuer_name="My Credentials"
-        )
-        qr = segno.make(uri, error="m").svg_data_uri(scale=4, border=2)
-        return render_template("setup.html", totp_secret=totp_secret,
-                               totp_uri=uri, totp_qr=qr, done=True)
+        set_setting("totp_secret", pyotp.random_base32())
+        return render_qr_step()
     return render_template("setup.html")
+
+
+@app.route("/setup/verify", methods=["POST"])
+def setup_verify():
+    if get_setting("pw_hash") is None:
+        return redirect(url_for("setup"))
+    if totp_confirmed():
+        return redirect(url_for("login"))
+    code = request.form.get("code", "").replace(" ", "")
+    if pyotp.TOTP(get_setting("totp_secret")).verify(code, valid_window=1):
+        set_setting("totp_confirmed", "1")
+        return render_template("setup.html", verified=True)
+    return render_qr_step(error=tr("wrongCode"))
 
 
 # ---------- login / logout ----------
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if get_setting("pw_hash") is None:
+    if get_setting("pw_hash") is None or not totp_confirmed():
         return redirect(url_for("setup"))
     error = None
     step = "password"
@@ -367,11 +400,14 @@ def decrypt_rows(f):
                 "account": f.decrypt(r["account"]).decode(),
                 "password": f.decrypt(r["password"]).decode(),
                 "info": f.decrypt(r["info"]).decode() if r["info"] else "",
+                "short_info": f.decrypt(r["short_info"]).decode() if r["short_info"] else "",
                 "has_desc": bool(r["description"] and f.decrypt(r["description"]).decode().strip()),
+                "has_files": bool(get_db().execute(
+                    "SELECT 1 FROM files WHERE cred_id = ? LIMIT 1", (r["id"],)).fetchone()),
             })
         except InvalidToken:
             out.append({"id": r["id"], "env": r["env"], "account": "(cannot decrypt)",
-                        "password": "", "info": ""})
+                        "password": "", "info": "", "short_info": ""})
     return out
 
 
@@ -414,11 +450,12 @@ def add_row():
     env = get_environments()[0]
     db = get_db()
     cur = db.execute(
-        "INSERT INTO credentials (env, account, password, info) VALUES (?, ?, ?, ?)",
-        (env, f.encrypt(b""), f.encrypt(b""), f.encrypt(b"")),
+        "INSERT INTO credentials (env, account, password, info, short_info) VALUES (?, ?, ?, ?, ?)",
+        (env, f.encrypt(b""), f.encrypt(b""), f.encrypt(b""), f.encrypt(b"")),
     )
     db.commit()
-    return jsonify({"id": cur.lastrowid, "env": env, "account": "", "password": "", "info": ""})
+    return jsonify({"id": cur.lastrowid, "env": env, "account": "", "password": "",
+                    "info": "", "short_info": ""})
 
 
 @app.route("/rows/<int:row_id>/description")
@@ -448,13 +485,11 @@ def account_files_page(row_id):
         account = f.decrypt(r["account"]).decode()
     except InvalidToken:
         account = "(cannot decrypt)"
-    files = []
-    for x in get_db().execute("SELECT id, filename, env, category, size, tags FROM files ORDER BY id").fetchall():
-        if x["env"] == r["env"] or row_id in file_tags(x):
-            files.append({"id": x["id"], "filename": x["filename"],
-                          "category": x["category"], "size": x["size"]})
+    files = [dict(x) for x in get_db().execute(
+        "SELECT id, filename, category, size FROM files WHERE cred_id = ? ORDER BY id DESC",
+        (row_id,)).fetchall()]
     return render_template("account_files.html", account=account, env=r["env"],
-                           files=files, environments=get_environments(),
+                           row_id=row_id, files=files, environments=get_environments(),
                            categories=get_categories())
 
 
@@ -469,7 +504,7 @@ def update_row(row_id):
             if v not in get_environments():
                 return jsonify({"error": "invalid environment"}), 400
             db.execute("UPDATE credentials SET env = ? WHERE id = ?", (v, row_id))
-        elif k in ("account", "password", "info", "description"):
+        elif k in ("account", "password", "info", "short_info", "description"):
             db.execute(f"UPDATE credentials SET {k} = ? WHERE id = ?",
                        (f.encrypt(str(v).encode()), row_id))
     db.commit()
@@ -539,6 +574,14 @@ def upload_file():
     category = request.form.get("category") or get_categories()[0]
     if env not in get_environments() or category not in get_categories():
         return jsonify({"error": "invalid env or category"}), 400
+    cred_id = request.form.get("cred_id") or None
+    if cred_id is not None:
+        try:
+            cred_id = int(cred_id)
+        except ValueError:
+            return jsonify({"error": "invalid account"}), 400
+        if get_db().execute("SELECT 1 FROM credentials WHERE id = ?", (cred_id,)).fetchone() is None:
+            return jsonify({"error": "invalid account"}), 400
     # Keep the real (Unicode) filename; only strip path separators and control chars.
     name = os.path.basename(f.filename.replace("\\", "/")).strip()
     name = "".join(c for c in name if c.isprintable() and c not in '<>:"|?*') or "file"
@@ -555,12 +598,12 @@ def upload_file():
     size = os.path.getsize(path)
     db = get_db()
     cur = db.execute(
-        "INSERT INTO files (filename, stored_name, env, category, size) VALUES (?, ?, ?, ?, ?)",
-        (name, stored, env, category, size),
+        "INSERT INTO files (filename, stored_name, env, category, size, cred_id) VALUES (?, ?, ?, ?, ?, ?)",
+        (name, stored, env, category, size, cred_id),
     )
     db.commit()
-    return jsonify({"id": cur.lastrowid, "filename": f.filename, "env": env,
-                    "category": category, "size": size})
+    return jsonify({"id": cur.lastrowid, "filename": name, "env": env,
+                    "category": category, "size": size, "cred_id": cred_id})
 
 
 @app.route("/files/<int:file_id>/description")
@@ -775,12 +818,12 @@ def export_excel():
     wb = Workbook()
     ws = wb.active
     ws.title = "Credentials"
-    ws.append(["account info", "Account", "Password", "Environment"])
+    ws.append(["account info", "account short info", "Account", "Password", "Environment"])
     for cell in ws[1]:
         cell.font = Font(bold=True)
     for r in rows:
-        ws.append([r["info"], r["account"], r["password"], r["env"]])
-    for col, width in zip("ABCD", (36, 32, 28, 16)):
+        ws.append([r["info"], r["short_info"], r["account"], r["password"], r["env"]])
+    for col, width in zip("ABCDE", (34, 22, 30, 26, 16)):
         ws.column_dimensions[col].width = width
     buf = BytesIO()
     wb.save(buf)

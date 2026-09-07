@@ -7,6 +7,8 @@ LANGS = {
 
 TRANSLATIONS = {
  "en": {
+  "colShortInfo": "account short info",
+  "shortInfoPh": "short label\u2026",
   "tags": "Tags",
   "tagPh": "+ add tag\u2026",
   "noAccount": "\u2014 no account \u2014",
@@ -84,6 +86,8 @@ TRANSLATIONS = {
   "wrongCode": "Invalid code. Try again."
  },
  "fr": {
+  "colShortInfo": "r\u00e9sum\u00e9 du compte",
+  "shortInfoPh": "libell\u00e9 court\u2026",
   "tags": "\u00c9tiquettes",
   "tagPh": "+ ajouter\u2026",
   "noAccount": "\u2014 aucun compte \u2014",
@@ -161,6 +165,8 @@ TRANSLATIONS = {
   "wrongCode": "Code invalide. Réessayez."
  },
  "de": {
+  "colShortInfo": "Kurzinfo",
+  "shortInfoPh": "Kurzbezeichnung\u2026",
   "tags": "Tags",
   "tagPh": "+ Tag hinzuf\u00fcgen\u2026",
   "noAccount": "\u2014 kein Konto \u2014",
@@ -238,6 +244,8 @@ TRANSLATIONS = {
   "wrongCode": "Ungültiger Code. Bitte erneut versuchen."
  },
  "es": {
+  "colShortInfo": "info breve",
+  "shortInfoPh": "etiqueta corta\u2026",
   "tags": "Etiquetas",
   "tagPh": "+ a\u00f1adir\u2026",
   "noAccount": "\u2014 sin cuenta \u2014",
@@ -315,6 +323,8 @@ TRANSLATIONS = {
   "wrongCode": "Código no válido. Inténtalo de nuevo."
  },
  "ja": {
+  "colShortInfo": "\u30a2\u30ab\u30a6\u30f3\u30c8\u7c21\u6613\u60c5\u5831",
+  "shortInfoPh": "\u77ed\u3044\u30e9\u30d9\u30eb\u2026",
   "tags": "\u30bf\u30b0",
   "tagPh": "+ \u30bf\u30b0\u3092\u8ffd\u52a0\u2026",
   "noAccount": "\u2014 \u30a2\u30ab\u30a6\u30f3\u30c8\u306a\u3057 \u2014",
@@ -392,6 +402,8 @@ TRANSLATIONS = {
   "wrongCode": "コードが無効です。もう一度お試しください。"
  },
  "zh": {
+  "colShortInfo": "\u8d26\u6237\u7b80\u8981\u4fe1\u606f",
+  "shortInfoPh": "\u7b80\u77ed\u6807\u7b7e\u2026",
   "tags": "\u6807\u7b7e",
   "tagPh": "+ \u6dfb\u52a0\u6807\u7b7e\u2026",
   "noAccount": "\u2014 \u65e0\u5173\u8054\u8d26\u6237 \u2014",

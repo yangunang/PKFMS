@@ -12,7 +12,7 @@
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Nunito', sans-serif; }
-  .wrap { max-width: 860px; margin: 0 auto; padding: 48px 24px; display: flex; flex-direction: column; gap: 20px; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 48px 24px; display: flex; flex-direction: column; gap: 20px; }
   .lang-select { appearance: none; border: 1.5px solid oklch(0.88 0.01 85); border-radius: 999px; padding: 8px 16px;
     font: 700 13.5px 'Nunito', sans-serif; cursor: pointer; background: #fff; color: oklch(0.4 0.02 60); }
   .lang-select:focus { outline: none; border-color: var(--accent); }
@@ -35,7 +35,7 @@
     display: inline-flex; align-items: center; justify-content: center; font-size: 18px; text-decoration: none; cursor: pointer; }
   .icon-btn:hover { background: oklch(0.9 0.015 85); }
   .card { background: #fff; border-radius: 20px; box-shadow: 0 4px 24px oklch(0.28 0.02 60 / 0.08); overflow: hidden; }
-  .grid-head, .grid-row { display: grid; grid-template-columns: 1fr 1fr 1fr 150px 204px; gap: 12px; align-items: center; padding: 10px 20px; }
+  .grid-head, .grid-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr) minmax(0, 1.05fr) minmax(0, 0.95fr) 124px 190px; min-width: 760px; gap: 12px; align-items: center; padding: 10px 20px; }
   .grid-head { padding: 14px 20px; background: oklch(0.94 0.015 85); font-size: 12.5px; font-weight: 800;
     text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
   .grid-head button { all: unset; cursor: pointer; display: flex; gap: 6px; align-items: center; }
@@ -44,10 +44,17 @@
     font: 700 14px 'Nunito', sans-serif; cursor: pointer; }
   select.env:hover { border-color: oklch(0.8 0.02 85); }
   select.env:focus { outline: none; border-color: var(--accent); }
-  input.cell { border: 1.5px solid transparent; border-radius: 10px; padding: 8px 10px; font-size: 15px;
-    background: transparent; width: 100%; font-family: 'Nunito', sans-serif; }
-  input.cell.pw { font: 600 14px 'JetBrains Mono', monospace; }
-  input.cell.info { font-size: 14px; color: oklch(0.45 0.02 60); }
+  input.cell, textarea.cell { min-width: 0; border: 1.5px solid transparent; border-radius: 10px; padding: 8px 10px; font-size: 15px;
+    background: transparent; width: 100%; box-sizing: border-box; font-family: 'Nunito', sans-serif; }
+  textarea.cell { resize: none; overflow: hidden; line-height: 1.35; }
+  textarea.cell.pw { font: 600 13.5px 'JetBrains Mono', monospace; word-break: break-all; }
+  textarea.cell.pw.masked { -webkit-text-security: disc; }
+  textarea.cell.info { font-size: 14px; color: oklch(0.45 0.02 60); }
+  textarea.cell:hover { background: var(--bg); }
+  textarea.cell:focus { outline: none; border-color: var(--accent); background: #fff; }
+  .grid-row.locked textarea.cell:hover { background: transparent; }
+  .grid-row.locked textarea.cell { cursor: default; }
+  .actions { flex-wrap: wrap; }
   input.cell:hover { background: var(--bg); }
   input.cell:focus { outline: none; border-color: var(--accent); background: #fff; }
   .actions { display: flex; gap: 4px; justify-content: flex-end; }
@@ -150,6 +157,7 @@
   <div class="card">
     <div class="grid-head">
       <div>{{ T.colInfo }}</div>
+      <div>{{ T.colShortInfo }}</div>
       <button data-sort="account">{{ T.colAccount }} <span></span></button>
       <div>{{ T.colPassword }}</div>
       <button data-sort="env">{{ T.colEnv }} <span></span></button>
@@ -158,9 +166,10 @@
     <div id="rows">
       {% for row in rows %}
       <div class="grid-row locked" data-id="{{ row.id }}">
-        <input class="cell info" data-field="info" value="{{ row.info }}" placeholder="{{ T.infoPh }}" readonly>
-        <input class="cell" data-field="account" value="{{ row.account }}" placeholder="{{ T.accountPh }}" readonly>
-        <input class="cell pw" type="password" data-field="password" value="{{ row.password }}" placeholder="{{ T.passwordPh }}" readonly>
+        <textarea class="cell info" data-field="info" rows="1" placeholder="{{ T.infoPh }}" readonly>{{ row.info }}</textarea>
+        <textarea class="cell info" data-field="short_info" rows="1" placeholder="{{ T.shortInfoPh }}" readonly>{{ row.short_info }}</textarea>
+        <textarea class="cell" data-field="account" rows="1" placeholder="{{ T.accountPh }}" readonly>{{ row.account }}</textarea>
+        <textarea class="cell pw masked" data-field="password" rows="1" placeholder="{{ T.passwordPh }}" readonly>{{ row.password }}</textarea>
         <div>
           <select class="env" data-field="env" disabled>
             {% for env in environments %}
@@ -169,7 +178,7 @@
           </select>
         </div>
         <div class="actions">
-          <a class="desc" href="/rows/{{ row.id }}/files" title="{{ T.tabFiles }}">&#128193;</a>
+          <a class="desc{% if row.has_files %} has{% endif %}" href="/rows/{{ row.id }}/files" title="{{ T.tabFiles }}">&#128193;</a>
           <a class="desc{% if row.has_desc %} has{% endif %}" href="/rows/{{ row.id }}/description" title="{{ T.descTitle }}">&#128196;</a>
           <button class="edit" title="{{ T.unlockEdit }}">&#9998;</button>
           <button class="eye" title="Show/hide password">&#128065;</button>
@@ -212,6 +221,9 @@ const updateCount = () => {
   document.querySelector('.count').textContent = (n === 1 ? T.entry : T.entries.split('{n}').join(n)) + ' \u00b7 ' + T.encAtRest;
 };
 const paintAll = () => rowsEl.querySelectorAll('select.env').forEach(paintEnv);
+const autosize = el => { el.style.height = 'auto'; el.style.height = (el.scrollHeight + 2) + 'px'; };
+const autosizeAll = () => rowsEl.querySelectorAll('textarea.cell').forEach(autosize);
+rowsEl.addEventListener('input', e => { if (e.target.matches('textarea.cell')) autosize(e.target); });
 
 const fmtSize = b => b < 1024 ? b + ' B' : b < 1048576 ? (b/1024).toFixed(1) + ' KB'
   : b < 1073741824 ? (b/1048576).toFixed(1) + ' MB' : (b/1073741824).toFixed(2) + ' GB';
@@ -257,7 +269,7 @@ const applyFilter = () => {
 document.querySelectorAll('.filter-chip').forEach(ch =>
   ch.addEventListener('click', () => { envFilter = ch.dataset.env; applyFilter(); }));
 
-paintAll(); updateCount();
+paintAll(); updateCount(); autosizeAll();
 
 const rebuildSelects = () => {
   rowsEl.querySelectorAll('select.env').forEach(sel => {
@@ -279,7 +291,8 @@ rowsEl.addEventListener('change', e => {
 const setRowLocked = (row, locked) => {
   row.classList.toggle('locked', locked);
   row.querySelector('[data-field=env]').disabled = locked;
-  row.querySelectorAll('input.cell').forEach(i => i.readOnly = locked);
+  row.querySelectorAll('input.cell, textarea.cell').forEach(i => i.readOnly = locked);
+  autosizeAll();
   const btn = row.querySelector('.edit');
   btn.classList.toggle('editing', !locked);
   btn.innerHTML = locked ? '&#9998;' : '&#10003;';
@@ -293,8 +306,9 @@ rowsEl.addEventListener('click', async e => {
     setRowLocked(row, !row.classList.contains('locked') ? true : false);
   } else if (e.target.closest('.eye')) {
     const pw = row.querySelector('[data-field=password]');
-    pw.type = pw.type === 'password' ? 'text' : 'password';
-    e.target.closest('.eye').innerHTML = pw.type === 'text' ? '&#128584;' : '&#128065;';
+    const nowMasked = pw.classList.toggle('masked');
+    e.target.closest('.eye').innerHTML = nowMasked ? '&#128065;' : '&#128584;';
+    autosize(pw);
   } else if (e.target.closest('.del')) {
     await fetch('/api/rows/' + row.dataset.id, { method: 'DELETE' });
     row.remove();

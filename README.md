@@ -16,8 +16,9 @@ TOTP two-factor authentication, with sensitive data encrypted at rest.
 - Filtering by environment also shows that environment's files inline
 - 📄 per-account **description page** with Markdown (headings, bold/italic,
   `code`, lists, links, code blocks), autosaved and encrypted
-- 📁 per-account **files page** listing all files associated with the
-  account (same environment or tagged with it)
+- 📁 per-account **files page**: upload and download files that belong to
+  that account only — accounts in the same environment keep separate,
+  independent file sets
 - Export everything to Excel (.xlsx) — exported decrypted, so guard the file
 
 **Files** (`/files`)
@@ -76,13 +77,18 @@ Without Docker:
 2. **Enable 2FA** — a QR code pops up; scan it with Google Authenticator /
    Authy / 1Password, or enter the printed secret manually. The secret is
    shown only once — save it somewhere safe.
-3. Log in: master password, then the current 6-digit code.
+3. **Verify** — enter the current 6-digit code from the app once, to
+   confirm the scan worked. Setup only completes after a valid code
+   (reloading the page brings the QR step back until then).
+4. Log in: master password, then the current 6-digit code.
 
 **Lost your authenticator (2FA)?** One command issues a fresh secret and
 prints a scannable QR code in the terminal; password and data are untouched:
 
     docker exec -it credentials-page flask reset-2fa
     # or locally: flask reset-2fa
+
+The app then asks for one code on the next visit to confirm the new secret.
 
 **Lost the master password?** Also recoverable — the data-encryption key is
 not derived from the password (see below):
