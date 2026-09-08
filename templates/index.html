@@ -377,7 +377,10 @@ rowsEl.addEventListener('click', async e => {
 });
 
 document.getElementById('add').addEventListener('click', async () => {
-  const r = await (await fetch('/api/rows', { method: 'POST' })).json();
+  const r = await (await fetch('/api/rows', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(envFilter ? { env: envFilter } : {}),
+  })).json();
   const first = rowsEl.querySelector('.grid-row');
   if (!first) { location.reload(); return; }
   const node = first.cloneNode(true);
