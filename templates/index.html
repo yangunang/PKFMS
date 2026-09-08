@@ -295,7 +295,27 @@ const applyFilter = () => {
   updateCount();
 };
 document.querySelectorAll('.filter-chip').forEach(ch =>
-  ch.addEventListener('click', () => { envFilter = ch.dataset.env; applyFilter(); }));
+  ch.addEventListener('click', () => {
+    envFilter = ch.dataset.env;
+    location.hash = envFilter ? 'env=' + encodeURIComponent(envFilter) : '';
+    applyFilter();
+  }));
+
+// restore filter (and unlock a just-created row) from the URL hash
+(() => {
+  const p = new URLSearchParams(location.hash.replace(/^#/, ''));
+  const env = p.get('env');
+  if (env) { envFilter = env; applyFilter(); }
+  const newId = p.get('new');
+  if (newId) {
+    const row = rowsEl.querySelector('.grid-row[data-id="' + newId + '"]');
+    if (row) {
+      setRowLocked(row, false);
+      row.querySelector('[data-field=account]').focus();
+    }
+    location.hash = env ? 'env=' + encodeURIComponent(env) : '';
+  }
+})();
 
 paintAll(); updateCount(); autosizeAll();
 
@@ -377,22 +397,15 @@ rowsEl.addEventListener('click', async e => {
 });
 
 document.getElementById('add').addEventListener('click', async () => {
-  const r = await (await fetch('/api/rows', {
+  const res = await fetch('/api/rows', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(envFilter ? { env: envFilter } : {}),
-  })).json();
-  const first = rowsEl.querySelector('.grid-row');
-  if (!first) { location.reload(); return; }
-  const node = first.cloneNode(true);
-  node.dataset.id = r.id;
-  node.querySelector('[data-field=account]').value = '';
-  node.querySelector('[data-field=password]').value = '';
-  const sel = node.querySelector('[data-field=env]');
-  sel.value = r.env; paintEnv(sel);
-  setRowLocked(node, false);
-  rowsEl.appendChild(node);
-  updateCount(); renderChips(); applyFilter(); autosizeAll();
-  node.querySelector('[data-field=account]').focus();
+  });
+  const r = await res.json();
+  // Re-render from the server so the new row carries the right env, empty
+  // fields and its own description/files links; keep the active filter.
+  location.hash = envFilter ? 'env=' + encodeURIComponent(envFilter) + '&new=' + r.id : 'new=' + r.id;
+  location.reload();
 });
 
 document.querySelectorAll('[data-sort]').forEach(btn => {
