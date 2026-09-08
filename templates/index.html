@@ -391,7 +391,7 @@ document.getElementById('add').addEventListener('click', async () => {
   sel.value = r.env; paintEnv(sel);
   setRowLocked(node, false);
   rowsEl.appendChild(node);
-  updateCount(); renderChips();
+  updateCount(); renderChips(); applyFilter(); autosizeAll();
   node.querySelector('[data-field=account]').focus();
 });
 

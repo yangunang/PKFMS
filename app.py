@@ -447,7 +447,10 @@ def file_tags(row):
 @login_required
 def add_row():
     f = current_fernet()
-    env = get_environments()[0]
+    data = request.get_json(silent=True) or {}
+    env = data.get("env") or get_environments()[0]
+    if env not in get_environments():
+        env = get_environments()[0]
     db = get_db()
     cur = db.execute(
         "INSERT INTO credentials (env, account, password, info, short_info) VALUES (?, ?, ?, ?, ?)",
