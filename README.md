@@ -19,9 +19,10 @@ TOTP two-factor authentication, with sensitive data encrypted at rest.
 - 📁 per-account **files page**: upload and download files that belong to
   that account only — accounts in the same environment keep separate,
   independent file sets
-- Export everything to Excel — the download is an **AES-256 encrypted ZIP**
-  (`credentials.xlsx.zip`) whose key is your **master password**; you re-enter
-  it to start the export, and the same password opens the archive
+- Export everything to Excel — the downloaded `credentials.xlsx` is
+  **password-protected with your master password** (standard OOXML/AES
+  encryption): you re-enter it to start the export, and Excel / LibreOffice /
+  Numbers prompt for the same password when opening the file
 
 **Files** (`/files`)
 - Upload / download / delete arbitrary files; unlock-to-edit like rows

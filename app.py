@@ -835,18 +835,17 @@ def export_excel():
     wb.save(buf)
     buf.seek(0)
 
-    import pyzipper
-    zbuf = BytesIO()
-    with pyzipper.AESZipFile(zbuf, "w", compression=pyzipper.ZIP_DEFLATED,
-                             encryption=pyzipper.WZ_AES) as zf:
-        zf.setpassword(pw.encode())
-        zf.writestr("credentials.xlsx", buf.getvalue())
-    zbuf.seek(0)
+    # Encrypt the workbook itself (standard OOXML/AES) so Excel, LibreOffice and
+    # Numbers all just prompt for the password — no external unzip tool needed.
+    from msoffcrypto.format.ooxml import OOXMLFile
+    enc = BytesIO()
+    OOXMLFile(buf).encrypt(pw, enc)
+    enc.seek(0)
     return send_file(
-        zbuf,
+        enc,
         as_attachment=True,
-        download_name="credentials.xlsx.zip",
-        mimetype="application/zip",
+        download_name="credentials.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
 
 

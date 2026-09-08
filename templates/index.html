@@ -325,7 +325,7 @@ document.getElementById('export-form').addEventListener('submit', async e => {
   const blob = await res.blob();
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'credentials.xlsx.zip';
+  a.download = 'credentials.xlsx';
   a.click();
   URL.revokeObjectURL(a.href);
   exportModal.classList.remove('open');

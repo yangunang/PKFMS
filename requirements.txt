@@ -3,4 +3,4 @@ openpyxl
 pyotp
 segno
 cryptography
-pyzipper
+msoffcrypto-tool
