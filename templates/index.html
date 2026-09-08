@@ -211,6 +211,18 @@
   </div>
   <p class="count"></p>
 </div>
+<div class="modal-bg" id="export-modal">
+  <form class="modal" id="export-form">
+    <h2>{{ T.exportBtn }}</h2>
+    <p>{{ T.exportKeyHint }}</p>
+    <input type="password" id="export-pw" placeholder="{{ T.mpPh }}" autocomplete="current-password" required>
+    <p class="err" id="export-err" style="display: none;"></p>
+    <div class="btns">
+      <button type="button" class="cancel" id="export-cancel">{{ T.cancel }}</button>
+      <button type="submit" class="go" id="export-go">{{ T.exportBtn }}</button>
+    </div>
+  </form>
+</div>
 <script>
 let ENVS = {{ environments | tojson }};
 const FILES = {{ files | tojson }};
@@ -445,17 +457,5 @@ const addEnv = async () => {
 document.getElementById('add-env').addEventListener('click', addEnv);
 document.getElementById('new-env').addEventListener('keydown', e => { if (e.key === 'Enter') addEnv(); });
 </script>
-<div class="modal-bg" id="export-modal">
-  <form class="modal" id="export-form">
-    <h2>{{ T.exportBtn }}</h2>
-    <p>{{ T.exportKeyHint }}</p>
-    <input type="password" id="export-pw" placeholder="{{ T.mpPh }}" autocomplete="current-password" required>
-    <p class="err" id="export-err" style="display: none;"></p>
-    <div class="btns">
-      <button type="button" class="cancel" id="export-cancel">{{ T.cancel }}</button>
-      <button type="submit" class="go" id="export-go">{{ T.exportBtn }}</button>
-    </div>
-  </form>
-</div>
 </body>
 </html>
