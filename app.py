@@ -811,9 +811,15 @@ def delete_note_category(name):
     return jsonify({"categories": get_note_categories()})
 
 
-@app.route("/export")
+@app.route("/export", methods=["POST"])
 @login_required
 def export_excel():
+    # The download is locked with the login auth key: the workbook is placed in
+    # an AES-256 encrypted ZIP whose password IS the master password, which the
+    # user must re-enter here (it is never stored server-side).
+    pw = request.form.get("password", "")
+    if not check_password_hash(get_setting("pw_hash"), pw):
+        return jsonify({"error": tr("wrongPw")}), 403
     rows = decrypt_rows(current_fernet())
     wb = Workbook()
     ws = wb.active
@@ -828,11 +834,19 @@ def export_excel():
     buf = BytesIO()
     wb.save(buf)
     buf.seek(0)
+
+    import pyzipper
+    zbuf = BytesIO()
+    with pyzipper.AESZipFile(zbuf, "w", compression=pyzipper.ZIP_DEFLATED,
+                             encryption=pyzipper.WZ_AES) as zf:
+        zf.setpassword(pw.encode())
+        zf.writestr("credentials.xlsx", buf.getvalue())
+    zbuf.seek(0)
     return send_file(
-        buf,
+        zbuf,
         as_attachment=True,
-        download_name="credentials.xlsx",
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        download_name="credentials.xlsx.zip",
+        mimetype="application/zip",
     )
 
 

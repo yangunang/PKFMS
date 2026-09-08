@@ -31,6 +31,22 @@
     border-radius: 999px; padding: 12px 22px; font: 700 15px 'Nunito', sans-serif; cursor: pointer;
     text-decoration: none; display: inline-flex; align-items: center; }
   .export-btn:hover { background: oklch(0.96 0.02 150); }
+  .modal-bg { position: fixed; inset: 0; background: oklch(0.28 0.02 60 / 0.35); display: none;
+    align-items: center; justify-content: center; padding: 20px; z-index: 50; }
+  .modal-bg.open { display: flex; }
+  .modal { background: #fff; border-radius: 20px; padding: 26px 28px; width: 100%; max-width: 380px;
+    display: flex; flex-direction: column; gap: 12px; box-shadow: 0 10px 40px oklch(0.28 0.02 60 / 0.2); }
+  .modal h2 { margin: 0; font-size: 19px; font-weight: 800; }
+  .modal p { margin: 0; font-size: 13.5px; color: var(--muted); line-height: 1.5; }
+  .modal input { border: 1.5px solid oklch(0.88 0.01 85); border-radius: 12px; padding: 11px 14px;
+    font: 400 15px 'Nunito', sans-serif; }
+  .modal input:focus { outline: none; border-color: var(--accent); }
+  .modal .err { color: oklch(0.5 0.15 25); font-weight: 700; font-size: 13px; }
+  .modal .btns { display: flex; gap: 8px; justify-content: flex-end; }
+  .modal button { border: none; border-radius: 999px; padding: 10px 20px; font: 700 14.5px 'Nunito', sans-serif; cursor: pointer; }
+  .modal .cancel { background: oklch(0.95 0.01 85); color: oklch(0.35 0.02 60); }
+  .modal .go { background: var(--accent); color: #fff; }
+  .modal .go:disabled { opacity: 0.6; cursor: default; }
   .icon-btn { width: 44px; height: 44px; border-radius: 999px; background: oklch(0.95 0.01 85); border: none;
     display: inline-flex; align-items: center; justify-content: center; font-size: 18px; text-decoration: none; cursor: pointer; }
   .icon-btn:hover { background: oklch(0.9 0.015 85); }
@@ -132,7 +148,7 @@
       <p>{{ T.credsSub }}</p>
     </div>
     <div class="toolbar">
-      <a class="export-btn" href="/export">{{ T.exportBtn }}</a>
+      <button class="export-btn" id="export">{{ T.exportBtn }}</button>
       <button class="add-btn" id="add">{{ T.addEntry }}</button>
       <button class="icon-btn" id="manage-toggle" title="Customize environments">&#9881;</button>
       <a class="icon-btn" href="/logout" title="Lock">&#128274;</a>
@@ -271,6 +287,38 @@ document.querySelectorAll('.filter-chip').forEach(ch =>
 
 paintAll(); updateCount(); autosizeAll();
 
+const exportModal = document.getElementById('export-modal');
+const exportPw = document.getElementById('export-pw');
+const exportErr = document.getElementById('export-err');
+const exportGo = document.getElementById('export-go');
+document.getElementById('export').addEventListener('click', () => {
+  exportPw.value = ''; exportErr.style.display = 'none';
+  exportModal.classList.add('open'); exportPw.focus();
+});
+document.getElementById('export-cancel').addEventListener('click', () => exportModal.classList.remove('open'));
+exportModal.addEventListener('click', e => { if (e.target === exportModal) exportModal.classList.remove('open'); });
+document.getElementById('export-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  exportGo.disabled = true; exportErr.style.display = 'none';
+  const fd = new FormData();
+  fd.append('password', exportPw.value);
+  const res = await fetch('/export', { method: 'POST', body: fd });
+  exportGo.disabled = false;
+  if (!res.ok) {
+    const j = await res.json().catch(() => ({}));
+    exportErr.textContent = j.error || T.wrongPw;
+    exportErr.style.display = '';
+    return;
+  }
+  const blob = await res.blob();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'credentials.xlsx.zip';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  exportModal.classList.remove('open');
+});
+
 const rebuildSelects = () => {
   rowsEl.querySelectorAll('select.env').forEach(sel => {
     const cur = sel.value;
@@ -397,5 +445,17 @@ const addEnv = async () => {
 document.getElementById('add-env').addEventListener('click', addEnv);
 document.getElementById('new-env').addEventListener('keydown', e => { if (e.key === 'Enter') addEnv(); });
 </script>
+<div class="modal-bg" id="export-modal">
+  <form class="modal" id="export-form">
+    <h2>{{ T.exportBtn }}</h2>
+    <p>{{ T.exportKeyHint }}</p>
+    <input type="password" id="export-pw" placeholder="{{ T.mpPh }}" autocomplete="current-password" required>
+    <p class="err" id="export-err" style="display: none;"></p>
+    <div class="btns">
+      <button type="button" class="cancel" id="export-cancel">{{ T.cancel }}</button>
+      <button type="submit" class="go" id="export-go">{{ T.exportBtn }}</button>
+    </div>
+  </form>
+</div>
 </body>
 </html>

@@ -7,6 +7,7 @@ LANGS = {
 
 TRANSLATIONS = {
  "en": {
+  "exportKeyHint": "The download is an AES-encrypted ZIP. Re-enter your master password \u2014 it is also the key that opens the file.",
   "colShortInfo": "account short info",
   "shortInfoPh": "short label\u2026",
   "tags": "Tags",
@@ -86,6 +87,7 @@ TRANSLATIONS = {
   "wrongCode": "Invalid code. Try again."
  },
  "fr": {
+  "exportKeyHint": "Le t\u00e9l\u00e9chargement est un ZIP chiffr\u00e9 (AES). Ressaisissez votre mot de passe principal \u2014 c\u2019est aussi la cl\u00e9 du fichier.",
   "colShortInfo": "r\u00e9sum\u00e9 du compte",
   "shortInfoPh": "libell\u00e9 court\u2026",
   "tags": "\u00c9tiquettes",
@@ -165,6 +167,7 @@ TRANSLATIONS = {
   "wrongCode": "Code invalide. Réessayez."
  },
  "de": {
+  "exportKeyHint": "Der Download ist ein AES-verschl\u00fcsseltes ZIP. Master-Passwort erneut eingeben \u2014 es ist zugleich der Schl\u00fcssel zur Datei.",
   "colShortInfo": "Kurzinfo",
   "shortInfoPh": "Kurzbezeichnung\u2026",
   "tags": "Tags",
@@ -244,6 +247,7 @@ TRANSLATIONS = {
   "wrongCode": "Ungültiger Code. Bitte erneut versuchen."
  },
  "es": {
+  "exportKeyHint": "La descarga es un ZIP cifrado con AES. Vuelve a introducir tu contrase\u00f1a maestra \u2014 tambi\u00e9n es la clave del archivo.",
   "colShortInfo": "info breve",
   "shortInfoPh": "etiqueta corta\u2026",
   "tags": "Etiquetas",
@@ -323,6 +327,7 @@ TRANSLATIONS = {
   "wrongCode": "Código no válido. Inténtalo de nuevo."
  },
  "ja": {
+  "exportKeyHint": "\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9\u306f AES \u6697\u53f7\u5316 ZIP \u3067\u3059\u3002\u30de\u30b9\u30bf\u30fc\u30d1\u30b9\u30ef\u30fc\u30c9\u3092\u518d\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044 \u2014 \u30d5\u30a1\u30a4\u30eb\u3092\u958b\u304f\u9375\u3082\u540c\u3058\u3067\u3059\u3002",
   "colShortInfo": "\u30a2\u30ab\u30a6\u30f3\u30c8\u7c21\u6613\u60c5\u5831",
   "shortInfoPh": "\u77ed\u3044\u30e9\u30d9\u30eb\u2026",
   "tags": "\u30bf\u30b0",
@@ -402,6 +407,7 @@ TRANSLATIONS = {
   "wrongCode": "コードが無効です。もう一度お試しください。"
  },
  "zh": {
+  "exportKeyHint": "\u4e0b\u8f7d\u4e3a AES \u52a0\u5bc6 ZIP\u3002\u8bf7\u91cd\u65b0\u8f93\u5165\u4e3b\u5bc6\u7801 \u2014 \u5b83\u4e5f\u662f\u6253\u5f00\u6587\u4ef6\u7684\u5bc6\u94a5\u3002",
   "colShortInfo": "\u8d26\u6237\u7b80\u8981\u4fe1\u606f",
   "shortInfoPh": "\u7b80\u77ed\u6807\u7b7e\u2026",
   "tags": "\u6807\u7b7e",
