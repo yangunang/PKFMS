@@ -250,7 +250,8 @@ const updateCount = () => {
 };
 const paintAll = () => rowsEl.querySelectorAll('select.env').forEach(paintEnv);
 const autosize = el => { el.style.height = 'auto'; el.style.height = (el.scrollHeight + 2) + 'px'; };
-const autosizeAll = () => rowsEl.querySelectorAll('textarea.cell').forEach(autosize);
+const autosizeAll = () => rowsEl.querySelectorAll('.grid-row:not([hidden])' +
+  ':not([style*="display: none"]) textarea.cell').forEach(autosize);
 rowsEl.addEventListener('input', e => { if (e.target.matches('textarea.cell')) autosize(e.target); });
 
 const fmtSize = b => b < 1024 ? b + ' B' : b < 1048576 ? (b/1024).toFixed(1) + ' KB'
@@ -262,6 +263,7 @@ const catColor = name => {
 };
 
 const applyFilter = () => {
+  requestAnimationFrame(autosizeAll);
   rowsEl.querySelectorAll('.grid-row').forEach(row => {
     const env = row.querySelector('[data-field=env]').value;
     row.style.display = (!envFilter || env === envFilter) ? '' : 'none';
@@ -318,6 +320,9 @@ document.querySelectorAll('.filter-chip').forEach(ch =>
 })();
 
 paintAll(); updateCount(); autosizeAll();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(autosizeAll);
+window.addEventListener('load', autosizeAll);
+window.addEventListener('resize', autosizeAll);
 
 const exportModal = document.getElementById('export-modal');
 const exportPw = document.getElementById('export-pw');
